@@ -51,12 +51,13 @@ func JSONHandler(w http.ResponseWriter, req *http.Request) {
 			}
 		} else {
 			inRouter, err := strconv.Atoi(valueMet)
+			if err != nil {
+				return
+			}
 			local, err := strconv.Atoi(localCounter.(string))
 			if err != nil {
 				return
 			}
-			println(inRouter)
-			println(local)
 			value := strconv.Itoa(local + inRouter)
 
 			err = memLocalStorage.Set(nameMet, value)
@@ -71,8 +72,6 @@ func JSONHandler(w http.ResponseWriter, req *http.Request) {
 
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	//localCounter, _ := memLocalStorage.Get(nameMet)
-	//fmt.Println("Converted string:", localCounter)
 }
 
 func main() {
