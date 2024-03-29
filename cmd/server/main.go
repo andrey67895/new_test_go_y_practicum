@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
@@ -37,6 +38,9 @@ func JSONHandler(w http.ResponseWriter, req *http.Request) {
 	typeMet := chi.URLParam(req, "type")
 	nameMet := chi.URLParam(req, "name")
 	valueMet := chi.URLParam(req, "value")
+	if _, err := strconv.Atoi(valueMet); err == nil {
+		http.Error(w, fmt.Sprintf("Неверный значение метрики! Допустимые числовые значения!"), http.StatusBadRequest)
+	}
 	if typeMet == "gauge" {
 		err := memLocalStorage.Set(nameMet, valueMet)
 		if err != nil {
