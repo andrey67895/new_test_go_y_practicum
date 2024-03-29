@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	"fmt"
+	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
 )
@@ -33,9 +33,10 @@ func NewMemStorage() *MemStorage {
 }
 
 func JSONHandler(w http.ResponseWriter, req *http.Request) {
-	typeMet := req.PathValue("type")
-	nameMet := req.PathValue("name")
-	valueMet := req.PathValue("value")
+	println(req.URL.Path)
+	typeMet := chi.URLParam(req, "type")
+	nameMet := chi.URLParam(req, "name")
+	valueMet := chi.URLParam(req, "value")
 	if typeMet == "gauge" {
 		err := memLocalStorage.Set(nameMet, valueMet)
 		if err != nil {
@@ -67,17 +68,18 @@ func JSONHandler(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Неверный тип метрики! Допустимые значения: gauge, counter", http.StatusBadRequest)
 		return
 	}
+
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	localCounter, _ := memLocalStorage.Get(nameMet)
-	fmt.Println("Converted string:", localCounter)
+	//localCounter, _ := memLocalStorage.Get(nameMet)
+	//fmt.Println("Converted string:", localCounter)
 }
 
 func main() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/update/{type}/{name}/{value}", JSONHandler)
-	err := http.ListenAndServe(`:8080`, mux)
+	r := chi.NewRouter()
+	r.Post("/update/{type}/{name}/{value}", JSONHandler)
+	err := http.ListenAndServe(":8080", r)
 	if err != nil {
-		panic(err)
+		return
 	}
 }
