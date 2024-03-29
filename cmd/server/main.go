@@ -10,28 +10,25 @@ import (
 var localNewMemStorageGauge = NewMemStorageGauge()
 var localNewMemStorageCounter = NewMemStorageCounter()
 
-type Gauge float64
-type Counter int64
-
 type MemStorageGauge struct {
-	data map[string]Gauge
+	data map[string]float64
 }
 
 type MemStorageCounter struct {
-	data map[string]Counter
+	data map[string]int64
 }
 
-func (e *MemStorageCounter) SetCounter(key string, value Counter) error {
+func (e *MemStorageCounter) SetCounter(key string, value int64) error {
 	e.data[key] = value
 	return nil
 }
 
-func (e *MemStorageGauge) SetGauge(key string, value Gauge) error {
+func (e *MemStorageGauge) SetGauge(key string, value float64) error {
 	e.data[key] = value
 	return nil
 }
 
-func (e *MemStorageGauge) GetGauge(key string) (Gauge, error) {
+func (e *MemStorageGauge) GetGauge(key string) (float64, error) {
 	value, ok := e.data[key]
 	if !ok {
 		return 0, errors.New("key not found")
@@ -39,7 +36,7 @@ func (e *MemStorageGauge) GetGauge(key string) (Gauge, error) {
 	return value, nil
 }
 
-func (e *MemStorageCounter) GetCounter(key string) (Counter, error) {
+func (e *MemStorageCounter) GetCounter(key string) (int64, error) {
 	value, ok := e.data[key]
 	if !ok {
 		return 0, errors.New("key not found")
@@ -49,13 +46,13 @@ func (e *MemStorageCounter) GetCounter(key string) (Counter, error) {
 
 func NewMemStorageGauge() *MemStorageGauge {
 	return &MemStorageGauge{
-		data: make(map[string]Gauge),
+		data: make(map[string]float64),
 	}
 }
 
 func NewMemStorageCounter() *MemStorageCounter {
 	return &MemStorageCounter{
-		data: make(map[string]Counter),
+		data: make(map[string]int64),
 	}
 }
 
@@ -69,19 +66,19 @@ func MetHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	if typeMet == "gauge" {
-		err := localNewMemStorageGauge.SetGauge(nameMet, Gauge(valueMet))
+		err := localNewMemStorageGauge.SetGauge(nameMet, float64(valueMet))
 		if err != nil {
 			return
 		}
 	} else if typeMet == "counter" {
 		localCounter, err := localNewMemStorageCounter.GetCounter(nameMet)
 		if err != nil {
-			err := localNewMemStorageCounter.SetCounter(nameMet, Counter(valueMet))
+			err := localNewMemStorageCounter.SetCounter(nameMet, int64(valueMet))
 			if err != nil {
 				return
 			}
 		} else {
-			err = localNewMemStorageCounter.SetCounter(nameMet, Counter(int(localCounter)+valueMet))
+			err = localNewMemStorageCounter.SetCounter(nameMet, int64(int(localCounter)+valueMet))
 			if err != nil {
 				return
 			}
