@@ -91,10 +91,7 @@ func TestMetHandler(t *testing.T) {
 			res := w.Result()
 			assert.Equal(t, test.want.code, res.StatusCode)
 			assert.Equal(t, test.want.contentType, res.Header.Get("Content-Type"))
-			err := res.Body.Close()
-			if err != nil {
-				return
-			}
+			_ = res.Body.Close()
 		})
 	}
 }
@@ -138,10 +135,7 @@ func TestCountValue(t *testing.T) {
 			value, err := storage.LocalNewMemStorageCounter.GetCounter("Test")
 			assert.NoError(t, err)
 			assert.Equal(t, 200, int(value))
-			errRequest := res.Body.Close()
-			if errRequest != nil {
-				return
-			}
+			_ = res.Body.Close()
 		})
 	}
 }
