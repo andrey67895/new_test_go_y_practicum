@@ -18,7 +18,7 @@ func (e *MemStorage) Set(key string, value string) error {
 	return nil
 }
 
-func (e *MemStorage) Get(key string) (any, error) {
+func (e *MemStorage) Get(key string) (string, error) {
 	value, ok := e.data[key]
 	if !ok {
 		return "", errors.New("key not found")
@@ -57,7 +57,7 @@ func JSONHandler(w http.ResponseWriter, req *http.Request) {
 			if err != nil {
 				return
 			}
-			local, err := strconv.Atoi(localCounter.(string))
+			local, err := strconv.Atoi(localCounter)
 			if err != nil {
 				return
 			}
