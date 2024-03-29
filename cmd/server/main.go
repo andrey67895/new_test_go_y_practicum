@@ -32,7 +32,7 @@ func NewMemStorage() *MemStorage {
 	}
 }
 
-func JSONHandler(w http.ResponseWriter, req *http.Request) {
+func MetHandler(w http.ResponseWriter, req *http.Request) {
 	println(req.URL.Path)
 	typeMet := chi.URLParam(req, "type")
 	nameMet := chi.URLParam(req, "name")
@@ -79,7 +79,7 @@ func JSONHandler(w http.ResponseWriter, req *http.Request) {
 
 func main() {
 	r := chi.NewRouter()
-	r.Post("/update/{type}/{name}/{value}", JSONHandler)
+	r.Post("/update/{type}/{name}/{value}", MetHandler)
 	err := http.ListenAndServe(":8080", r)
 	if err != nil {
 		return
