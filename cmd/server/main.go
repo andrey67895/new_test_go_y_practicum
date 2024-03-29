@@ -7,28 +7,55 @@ import (
 	"strconv"
 )
 
-var memLocalStorage = NewMemStorage()
+var localNewMemStorageGauge = NewMemStorageGauge()
+var localNewMemStorageCounter = NewMemStorageCounter()
 
-type MemStorage struct {
-	data map[string]string
+type Gauge float64
+type Counter int64
+
+type MemStorageGauge struct {
+	data map[string]Gauge
 }
 
-func (e *MemStorage) Set(key string, value string) error {
+type MemStorageCounter struct {
+	data map[string]Counter
+}
+
+func (e *MemStorageCounter) SetCounter(key string, value Counter) error {
 	e.data[key] = value
 	return nil
 }
 
-func (e *MemStorage) Get(key string) (string, error) {
+func (e *MemStorageGauge) SetGauge(key string, value Gauge) error {
+	e.data[key] = value
+	return nil
+}
+
+func (e *MemStorageGauge) GetGauge(key string) (Gauge, error) {
 	value, ok := e.data[key]
 	if !ok {
-		return "", errors.New("key not found")
+		return 0, errors.New("key not found")
 	}
 	return value, nil
 }
 
-func NewMemStorage() *MemStorage {
-	return &MemStorage{
-		data: make(map[string]string),
+func (e *MemStorageCounter) GetCounter(key string) (Counter, error) {
+	value, ok := e.data[key]
+	if !ok {
+		return 0, errors.New("key not found")
+	}
+	return value, nil
+}
+
+func NewMemStorageGauge() *MemStorageGauge {
+	return &MemStorageGauge{
+		data: make(map[string]Gauge),
+	}
+}
+
+func NewMemStorageCounter() *MemStorageCounter {
+	return &MemStorageCounter{
+		data: make(map[string]Counter),
 	}
 }
 
@@ -36,34 +63,25 @@ func MetHandler(w http.ResponseWriter, req *http.Request) {
 	println(req.URL.Path)
 	typeMet := chi.URLParam(req, "type")
 	nameMet := chi.URLParam(req, "name")
-	valueMet := chi.URLParam(req, "value")
-	if _, err := strconv.Atoi(valueMet); err != nil {
+	valueMet, err := strconv.Atoi(chi.URLParam(req, "value"))
+	if err != nil {
 		http.Error(w, "Неверный значение метрики! Допустимые числовые значения!", http.StatusBadRequest)
+		return
 	}
 	if typeMet == "gauge" {
-		err := memLocalStorage.Set(nameMet, valueMet)
+		err := localNewMemStorageGauge.SetGauge(nameMet, Gauge(valueMet))
 		if err != nil {
 			return
 		}
 	} else if typeMet == "counter" {
-		localCounter, _ := memLocalStorage.Get(nameMet)
-		if localCounter == "" {
-			err := memLocalStorage.Set(nameMet, valueMet)
+		localCounter, err := localNewMemStorageCounter.GetCounter(nameMet)
+		if err != nil {
+			err := localNewMemStorageCounter.SetCounter(nameMet, Counter(valueMet))
 			if err != nil {
 				return
 			}
 		} else {
-			inRouter, err := strconv.Atoi(valueMet)
-			if err != nil {
-				return
-			}
-			local, err := strconv.Atoi(localCounter)
-			if err != nil {
-				return
-			}
-			value := strconv.Itoa(local + inRouter)
-
-			err = memLocalStorage.Set(nameMet, value)
+			err = localNewMemStorageCounter.SetCounter(nameMet, Counter(int(localCounter)+valueMet))
 			if err != nil {
 				return
 			}
