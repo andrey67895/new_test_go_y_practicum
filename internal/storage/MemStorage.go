@@ -9,6 +9,14 @@ type MemStorageGauge struct {
 	data map[string]float64
 }
 
+func (e *MemStorageCounter) GetData() map[string]int64 {
+	return e.data
+}
+
+func (e *MemStorageGauge) GetData() map[string]float64 {
+	return e.data
+}
+
 type MemStorageCounter struct {
 	data map[string]int64
 }

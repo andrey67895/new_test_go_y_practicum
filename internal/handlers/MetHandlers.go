@@ -8,6 +8,22 @@ import (
 	"strconv"
 )
 
+func GetAll(w http.ResponseWriter, _ *http.Request) {
+	for k, v := range storage.LocalNewMemStorageGauge.GetData() {
+		_, err := w.Write([]byte("Name: " + k + ". Value: " + fmt.Sprint(v) + "\n"))
+		if err != nil {
+			return
+		}
+	}
+	for k, v := range storage.LocalNewMemStorageCounter.GetData() {
+		_, err := w.Write([]byte("Name: " + k + ". Value: " + fmt.Sprint(v)))
+		if err != nil {
+			return
+		}
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
 func GetMetHandler(w http.ResponseWriter, req *http.Request) {
 	typeMet := chi.URLParam(req, "type")
 	nameMet := chi.URLParam(req, "name")
