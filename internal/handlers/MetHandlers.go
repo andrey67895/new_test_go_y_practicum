@@ -10,18 +10,24 @@ import (
 func MetHandler(w http.ResponseWriter, req *http.Request) {
 	typeMet := chi.URLParam(req, "type")
 	nameMet := chi.URLParam(req, "name")
-	valueMet, err := strconv.Atoi(chi.URLParam(req, "value"))
-	if err != nil {
 
-		http.Error(w, "Неверный значение метрики! Допустимые числовые значения!", http.StatusBadRequest)
-		return
-	}
 	if typeMet == "gauge" {
-		err := storage.LocalNewMemStorageGauge.SetGauge(nameMet, float64(valueMet))
+		valueMet, err := strconv.ParseFloat(chi.URLParam(req, "value"), 64)
+		if err != nil {
+			http.Error(w, "Неверный значение метрики! Допустимые числовые значения!", http.StatusBadRequest)
+			return
+		}
+		err = storage.LocalNewMemStorageGauge.SetGauge(nameMet, valueMet)
 		if err != nil {
 			return
 		}
 	} else if typeMet == "counter" {
+		valueMet, err := strconv.Atoi(chi.URLParam(req, "value"))
+		if err != nil {
+
+			http.Error(w, "Неверный значение метрики! Допустимые числовые значения!", http.StatusBadRequest)
+			return
+		}
 		localCounter, err := storage.LocalNewMemStorageCounter.GetCounter(nameMet)
 		if err != nil {
 			err := storage.LocalNewMemStorageCounter.SetCounter(nameMet, int64(valueMet))

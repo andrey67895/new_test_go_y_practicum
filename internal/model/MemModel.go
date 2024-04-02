@@ -16,8 +16,16 @@ func (e *Count) UpdateCountPlusOne() {
 	e.metrics = e.metrics + 1
 }
 
+func (e *Count) ClearCount() {
+	e.metrics = 0
+}
+
 func (e *Gauge) GetMetrics() float64 {
 	return e.metrics
+}
+
+func (e *Count) GetName() string {
+	return e.name
 }
 
 func (e *Count) GetMetrics() int64 {

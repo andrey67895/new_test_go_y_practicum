@@ -42,8 +42,16 @@ func sendMetrics(pollInterval time.Duration) {
 			if errClose != nil {
 				println(errClose)
 			}
-
 		}
+		body, err := http.Post("http://localhost:8080/update/counter/"+string(count.GetName())+"/"+strconv.Itoa(int(count.GetMetrics())), "text/plain", nil)
+		if err != nil {
+			println(err)
+		}
+		errClose := body.Body.Close()
+		if errClose != nil {
+			println(errClose)
+		}
+		count.ClearCount()
 	}
 }
 
