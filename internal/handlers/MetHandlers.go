@@ -1,11 +1,44 @@
 package handlers
 
 import (
+	"fmt"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
 )
+
+func GetMetHandler(w http.ResponseWriter, req *http.Request) {
+	typeMet := chi.URLParam(req, "type")
+	nameMet := chi.URLParam(req, "name")
+	if typeMet == "gauge" {
+		localGauge, err := storage.LocalNewMemStorageGauge.GetGauge(nameMet)
+		if err != nil {
+			http.Error(w, "Название метрики не найдено", http.StatusNotFound)
+			return
+		}
+		_, errWrite := w.Write([]byte(fmt.Sprint(localGauge)))
+		if errWrite != nil {
+			return
+		}
+	} else if typeMet == "counter" {
+
+		localCounter, err := storage.LocalNewMemStorageCounter.GetCounter(nameMet)
+		if err != nil {
+			http.Error(w, "Название метрики не найдено", http.StatusNotFound)
+			return
+		}
+		_, errWrite := w.Write([]byte(fmt.Sprint(localCounter)))
+		if errWrite != nil {
+			return
+		}
+
+	} else {
+		http.Error(w, "Неверный тип метрики! Допустимые значения: gauge, counter", http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
 
 func MetHandler(w http.ResponseWriter, req *http.Request) {
 	typeMet := chi.URLParam(req, "type")

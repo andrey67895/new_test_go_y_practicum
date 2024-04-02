@@ -11,6 +11,7 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.RealIP, middleware.Logger, middleware.Recoverer)
 	r.Post("/update/{type}/{name}/{value}", handlers.MetHandler)
+	r.Get("/value/{type}/{name}", handlers.GetMetHandler)
 	err := http.ListenAndServe(":8080", r)
 	if err != nil {
 		return
