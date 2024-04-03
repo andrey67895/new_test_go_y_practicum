@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	_ "fmt"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
 	"math/rand"
 	"net/http"
@@ -32,11 +31,11 @@ func updateMetrics(pollInterval time.Duration) {
 	}
 }
 
-func sendMetrics(pollInterval time.Duration) {
+func sendMetrics(pollInterval time.Duration, port string) {
 	for {
 		time.Sleep(pollInterval * time.Second)
 		for k, v := range metrics {
-			body, err := http.Post("http://localhost:8080/update/gauge/"+string(k)+"/"+strconv.FormatFloat(v.GetMetrics(), 'f', -1, 64), "text/plain", nil)
+			body, err := http.Post("http://localhost:"+port+"/update/gauge/"+k+"/"+strconv.FormatFloat(v.GetMetrics(), 'f', -1, 64), "text/plain", nil)
 			if err != nil {
 				println(err)
 			}
@@ -45,7 +44,7 @@ func sendMetrics(pollInterval time.Duration) {
 				println(errClose)
 			}
 		}
-		body, err := http.Post("http://localhost:8080/update/counter/"+string(count.GetName())+"/"+strconv.Itoa(int(count.GetMetrics())), "text/plain", nil)
+		body, err := http.Post("http://localhost:"+port+"/update/counter/"+count.GetName()+"/"+strconv.Itoa(int(count.GetMetrics())), "text/plain", nil)
 		if err != nil {
 			println(err)
 		}
@@ -63,10 +62,8 @@ func main() {
 	pollInterval := flag.Int("p", 10, "pollInterval for update metrics")
 	flag.Parse()
 	go updateMetrics(time.Duration(*reportInterval))
-	go sendMetrics(time.Duration(*pollInterval))
-	server := http.Server{
-		Addr: ":" + string(fmt.Sprintf("%d", *port)),
-	}
+	go sendMetrics(time.Duration(*pollInterval), fmt.Sprintf("%d", *port))
+	server := http.Server{}
 	err := server.ListenAndServe()
 	if err != nil {
 		println(err.Error())
