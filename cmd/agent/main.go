@@ -32,7 +32,6 @@ func updateMetrics(pollInterval time.Duration) {
 
 func sendMetrics(pollInterval time.Duration, host string) {
 	for {
-		time.Sleep(pollInterval * time.Second)
 		for k, v := range metrics {
 			body, err := http.Post("http://"+host+"/update/gauge/"+k+"/"+strconv.FormatFloat(v.GetMetrics(), 'f', -1, 64), "text/plain", nil)
 			if err != nil {
@@ -52,6 +51,7 @@ func sendMetrics(pollInterval time.Duration, host string) {
 			println(errClose)
 		}
 		count.ClearCount()
+		time.Sleep(pollInterval * time.Second)
 	}
 }
 
