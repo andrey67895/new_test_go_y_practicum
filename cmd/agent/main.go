@@ -31,11 +31,11 @@ func updateMetrics(pollInterval time.Duration) {
 	}
 }
 
-func sendMetrics(pollInterval time.Duration, port string) {
+func sendMetrics(pollInterval time.Duration, host string) {
 	for {
 		time.Sleep(pollInterval * time.Second)
 		for k, v := range metrics {
-			body, err := http.Post("http://localhost:"+port+"/update/gauge/"+k+"/"+strconv.FormatFloat(v.GetMetrics(), 'f', -1, 64), "text/plain", nil)
+			body, err := http.Post("http://"+host+"/update/gauge/"+k+"/"+strconv.FormatFloat(v.GetMetrics(), 'f', -1, 64), "text/plain", nil)
 			if err != nil {
 				println(err)
 			}
@@ -44,7 +44,7 @@ func sendMetrics(pollInterval time.Duration, port string) {
 				println(errClose)
 			}
 		}
-		body, err := http.Post("http://localhost:"+port+"/update/counter/"+count.GetName()+"/"+strconv.Itoa(int(count.GetMetrics())), "text/plain", nil)
+		body, err := http.Post("http://"+host+"/update/counter/"+count.GetName()+"/"+strconv.Itoa(int(count.GetMetrics())), "text/plain", nil)
 		if err != nil {
 			println(err)
 		}
@@ -57,12 +57,12 @@ func sendMetrics(pollInterval time.Duration, port string) {
 }
 
 func main() {
-	port := flag.Int("a", 8080, "port for host")
-	reportInterval := flag.Int("r", 2, "reportInterval for send metrics to server")
-	pollInterval := flag.Int("p", 10, "pollInterval for update metrics")
+	port := flag.String("a", "localhost:8080", "port for host")
+	reportInterval := flag.Duration("r", 2, "reportInterval for send metrics to server")
+	pollInterval := flag.Duration("p", 10, "pollInterval for update metrics")
 	flag.Parse()
-	go updateMetrics(time.Duration(*reportInterval))
-	go sendMetrics(time.Duration(*pollInterval), fmt.Sprintf("%d", *port))
+	go updateMetrics(*reportInterval)
+	go sendMetrics(*pollInterval, fmt.Sprintf("%s", *port))
 	server := http.Server{}
 	err := server.ListenAndServe()
 	if err != nil {
