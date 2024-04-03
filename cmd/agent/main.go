@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
 	"math/rand"
 	"net/http"
@@ -57,12 +56,12 @@ func sendMetrics(pollInterval time.Duration, host string) {
 }
 
 func main() {
-	port := flag.String("a", "localhost:8080", "port for host")
+	host := flag.String("a", "localhost:8080", "host for server")
 	reportInterval := flag.Duration("r", 2, "reportInterval for send metrics to server")
 	pollInterval := flag.Duration("p", 10, "pollInterval for update metrics")
 	flag.Parse()
 	go updateMetrics(*reportInterval)
-	go sendMetrics(*pollInterval, fmt.Sprintf("%s", *port))
+	go sendMetrics(*pollInterval, *host)
 	server := http.Server{}
 	err := server.ListenAndServe()
 	if err != nil {
