@@ -58,11 +58,11 @@ func sendMetrics(pollInterval time.Duration, host string) {
 
 func main() {
 	host := flag.String("a", "localhost:8080", "host for server")
-	reportInterval := flag.Duration("r", 2, "reportInterval for send metrics to server")
-	pollInterval := flag.Duration("p", 10, "pollInterval for update metrics")
+	reportInterval := flag.Duration("r", 10, "reportInterval for send metrics to server")
+	pollInterval := flag.Duration("p", 2, "pollInterval for update metrics")
 	flag.Parse()
-	go updateMetrics(*reportInterval)
-	go sendMetrics(*pollInterval, *host)
+	go updateMetrics(*pollInterval)
+	go sendMetrics(*reportInterval, *host)
 	server := http.Server{}
 	err := server.ListenAndServe()
 	if err != nil {
