@@ -11,10 +11,8 @@ import (
 
 func main() {
 	host := flag.String("a", "localhost:8080", "host for server")
-	port := strings.Split(*host, ":")[1]
 	flag.Parse()
-	println("HOST :::: ", host)
-	println("PORT :::: ", port)
+	port := strings.Split(*host, ":")[1]
 	r := chi.NewRouter()
 	r.Use(middleware.RealIP, middleware.Logger, middleware.Recoverer)
 	r.Post("/update/{type}/{name}/{value}", handlers.MetHandler)
