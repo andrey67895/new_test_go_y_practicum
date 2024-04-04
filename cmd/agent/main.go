@@ -45,7 +45,7 @@ func sendMetrics(pollInterval time.Duration, host string) {
 }
 
 func sendRequest(host string, typeMetr string, nameMetr string, metrics string) {
-	url := "http://" + host + "/update/" + typeMetr + nameMetr + "/" + count.GetName() + "/" + metrics
+	url := "http://" + host + "/update/" + typeMetr + "/" + nameMetr + "/" + metrics
 	body, err := http.Post(url, "text/plain", nil)
 	if err != nil {
 		println(err.Error())
@@ -85,60 +85,60 @@ func main() {
 func getMemByStats(name string) float64 {
 	var memStats runtime.MemStats
 	runtime.ReadMemStats(&memStats)
-	if name == "Alloc" {
+	switch name {
+	case "Alloc":
 		return float64(memStats.Alloc)
-	} else if name == "BuckHashSys" {
+	case "BuckHashSys":
 		return float64(memStats.BuckHashSys)
-	} else if name == "Frees" {
+	case "Frees":
 		return float64(memStats.Frees)
-	} else if name == "GCCPUFraction" {
+	case "GCCPUFraction":
 		return memStats.GCCPUFraction
-	} else if name == "GCSys" {
+	case "GCSys":
 		return float64(memStats.GCSys)
-	} else if name == "HeapAlloc" {
+	case "HeapAlloc":
 		return float64(memStats.HeapAlloc)
-	} else if name == "HeapIdle" {
+	case "HeapIdle":
 		return float64(memStats.HeapIdle)
-	} else if name == "HeapInuse" {
+	case "HeapInuse":
 		return float64(memStats.HeapInuse)
-	} else if name == "HeapObjects" {
+	case "HeapObjects":
 		return float64(memStats.HeapObjects)
-	} else if name == "HeapReleased" {
+	case "HeapReleased":
 		return float64(memStats.HeapReleased)
-	} else if name == "HeapSys" {
+	case "HeapSys":
 		return float64(memStats.HeapSys)
-	} else if name == "LastGC" {
+	case "LastGC":
 		return float64(memStats.LastGC)
-	} else if name == "Lookups" {
+	case "Lookups":
 		return float64(memStats.Lookups)
-	} else if name == "MCacheInuse" {
+	case "MCacheInuse":
 		return float64(memStats.MCacheInuse)
-	} else if name == "MCacheSys" {
+	case "MCacheSys":
 		return float64(memStats.MCacheSys)
-	} else if name == "MSpanInuse" {
+	case "MSpanInuse":
 		return float64(memStats.MSpanInuse)
-	} else if name == "MSpanSys" {
+	case "MSpanSys":
 		return float64(memStats.MSpanSys)
-	} else if name == "Mallocs" {
+	case "Mallocs":
 		return float64(memStats.Mallocs)
-	} else if name == "NumForcedGC" {
+	case "NumForcedGC":
 		return float64(memStats.NumForcedGC)
-	} else if name == "NumGC" {
+	case "NumGC":
 		return float64(memStats.NumGC)
-	} else if name == "OtherSys" {
+	case "OtherSys":
 		return float64(memStats.OtherSys)
-	} else if name == "PauseTotalNs" {
+	case "PauseTotalNs":
 		return float64(memStats.PauseTotalNs)
-	} else if name == "StackInuse" {
+	case "StackInuse":
 		return float64(memStats.StackInuse)
-	} else if name == "Sys" {
+	case "Sys":
 		return float64(memStats.Sys)
-	} else if name == "TotalAlloc" {
+	case "TotalAlloc":
 		return float64(memStats.TotalAlloc)
-	} else if name == "RandomValue" {
+	case "RandomValue":
 		return rand.Float64()
-	} else {
+	default:
 		return 0
 	}
-
 }
