@@ -69,18 +69,16 @@ func main() {
 	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
 		host = envRunAddr
 	}
-	getEnvByKey("REPORT_INTERVAL", reportInterval)
-	getEnvByKey("POLL_INTERVAL", pollInterval)
+	if envReportInterval := os.Getenv("REPORT_INTERVAL"); envReportInterval != "" {
+		reportInterval, _ = strconv.Atoi(envReportInterval)
+	}
+	if envPollInterval := os.Getenv("POLL_INTERVAL"); envPollInterval != "" {
+		pollInterval, _ = strconv.Atoi(envPollInterval)
+	}
 	go updateMetrics(time.Duration(pollInterval))
 	go sendMetrics(time.Duration(reportInterval), host)
 	server := http.Server{}
 	log.Fatal(server.ListenAndServe())
-}
-
-func getEnvByKey(key string, value int) {
-	if envInt := os.Getenv(key); envInt != "" {
-		value, _ = strconv.Atoi(envInt)
-	}
 }
 
 func getMemByStats(name string) float64 {
