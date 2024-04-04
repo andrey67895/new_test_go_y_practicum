@@ -36,25 +36,24 @@ func sendMetrics(pollInterval time.Duration, host string) {
 	for {
 		time.Sleep(pollInterval * time.Second)
 		for k, v := range metrics {
-			body, err := http.Post("http://"+host+"/update/gauge/"+k+"/"+strconv.FormatFloat(v.GetMetrics(), 'f', -1, 64), "text/plain", nil)
-			if err != nil {
-				println(err)
-			}
-			errClose := body.Body.Close()
-			if errClose != nil {
-				println(errClose)
-			}
+			sendRequest(host, "gauge", k, strconv.FormatFloat(v.GetMetrics(), 'f', -1, 64))
 		}
-		body, err := http.Post("http://"+host+"/update/counter/"+count.GetName()+"/"+strconv.Itoa(int(count.GetMetrics())), "text/plain", nil)
-		if err != nil {
-			println(err)
-		}
-		errClose := body.Body.Close()
-		if errClose != nil {
-			println(errClose)
-		}
+		sendRequest(host, "counter", count.GetName(), strconv.Itoa(int(count.GetMetrics())))
 		count.ClearCount()
 
+	}
+}
+
+func sendRequest(host string, typeMetr string, nameMetr string, metrics string) {
+	url := "http://" + host + "/update/" + typeMetr + nameMetr + "/" + count.GetName() + "/" + metrics
+	body, err := http.Post(url, "text/plain", nil)
+	if err != nil {
+		println(err.Error())
+	} else {
+		errClose := body.Body.Close()
+		if errClose != nil {
+			println(errClose.Error())
+		}
 	}
 }
 
