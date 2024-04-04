@@ -73,7 +73,6 @@ func main() {
 	getEnvByKey("POLL_INTERVAL", pollInterval)
 	go updateMetrics(time.Duration(pollInterval))
 	go sendMetrics(time.Duration(reportInterval), host)
-
 	server := http.Server{}
 	log.Fatal(server.ListenAndServe())
 }
