@@ -7,15 +7,19 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 )
 
-var host = flag.String("a", "localhost:8080", "host for server")
+var host string
 
 func main() {
-
+	flag.StringVar(&host, "a", "localhost:8080", "host for server")
 	flag.Parse()
-	port := strings.Split(*host, ":")[1]
+	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
+		host = envRunAddr
+	}
+	port := strings.Split(host, ":")[1]
 	r := chi.NewRouter()
 	r.Use(middleware.RealIP, middleware.Logger, middleware.Recoverer)
 	r.Post("/update/{type}/{name}/{value}", handlers.MetHandler)

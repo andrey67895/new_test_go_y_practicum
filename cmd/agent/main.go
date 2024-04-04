@@ -3,8 +3,10 @@ package main
 import (
 	"flag"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
+	"log"
 	"math/rand"
 	"net/http"
+	"os"
 	"runtime"
 	"strconv"
 	"time"
@@ -56,19 +58,29 @@ func sendMetrics(pollInterval time.Duration, host string) {
 	}
 }
 
+var host string
+var reportInterval int
+var pollInterval int
+
 func main() {
-	host := flag.String("a", "localhost:8080", "host for server")
-	reportInterval := flag.Int("r", 10, "reportInterval for send metrics to server")
-	pollInterval := flag.Int("p", 2, "pollInterval for update metrics")
+	flag.StringVar(&host, "a", "localhost:8080", "host for server")
+	flag.IntVar(&reportInterval, "r", 10, "reportInterval for send metrics to server")
+	flag.IntVar(&pollInterval, "p", 2, "pollInterval for update metrics")
 	flag.Parse()
-	go updateMetrics(time.Duration(*pollInterval))
-	go sendMetrics(time.Duration(*reportInterval), *host)
-	server := http.Server{}
-	err := server.ListenAndServe()
-	if err != nil {
-		println(err.Error())
-		return
+	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
+		host = envRunAddr
 	}
+	if envReportInterval := os.Getenv("REPORT_INTERVAL"); envReportInterval != "" {
+		reportInterval, _ = strconv.Atoi(envReportInterval)
+	}
+	if envPollInterval := os.Getenv("REPORT_INTERVAL"); envPollInterval != "" {
+		pollInterval, _ = strconv.Atoi(envPollInterval)
+	}
+	go updateMetrics(time.Duration(pollInterval))
+	go sendMetrics(time.Duration(reportInterval), host)
+
+	server := http.Server{}
+	log.Fatal(server.ListenAndServe())
 }
 
 func getMemByStats(name string) float64 {
