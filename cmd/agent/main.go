@@ -70,15 +70,23 @@ func main() {
 		host = envRunAddr
 	}
 	if envReportInterval := os.Getenv("REPORT_INTERVAL"); envReportInterval != "" {
-		reportInterval, _ = strconv.Atoi(envReportInterval)
+		reportInterval = getValueInEnv(envReportInterval)
 	}
 	if envPollInterval := os.Getenv("POLL_INTERVAL"); envPollInterval != "" {
-		pollInterval, _ = strconv.Atoi(envPollInterval)
+		pollInterval = getValueInEnv(envPollInterval)
 	}
 	go updateMetrics(time.Duration(pollInterval))
 	go sendMetrics(time.Duration(reportInterval), host)
 	server := http.Server{}
 	log.Fatal(server.ListenAndServe())
+}
+
+func getValueInEnv(env string) int {
+	envInt, err := strconv.Atoi(env)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return envInt
 }
 
 func getMemByStats(name string) float64 {
