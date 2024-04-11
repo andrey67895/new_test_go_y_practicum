@@ -6,7 +6,6 @@ type Gauge struct {
 	name    string
 	isGauge bool
 	metrics float64
-	mux     sync.RWMutex
 }
 
 type Count struct {
@@ -29,8 +28,6 @@ func (e *Count) ClearCount() {
 }
 
 func (e *Gauge) GetMetrics() float64 {
-	e.mux.RLock()
-	defer e.mux.RUnlock()
 	return e.metrics
 }
 
