@@ -9,6 +9,7 @@ import (
 	"os"
 	"runtime"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -19,13 +20,16 @@ var metricsName = []string{"Alloc", "BuckHashSys", "Frees", "GCCPUFraction", "GC
 	"StackSys", "Sys", "TotalAlloc", "RandomValue",
 }
 
+var mutex sync.RWMutex
 var count = model.NewCount("PollCount", 0)
 var metrics = make(map[string]model.Gauge)
 
 func updateMetrics(pollInterval time.Duration) {
 	for {
 		for _, statName := range metricsName {
+			mutex.Lock()
 			metrics[statName] = model.NewGauge(statName, getMemByStats(statName))
+			mutex.Unlock()
 		}
 		count.UpdateCountPlusOne()
 		time.Sleep(pollInterval * time.Second)
@@ -35,10 +39,13 @@ func updateMetrics(pollInterval time.Duration) {
 func sendMetrics(pollInterval time.Duration, host string) {
 	for {
 		time.Sleep(pollInterval * time.Second)
+		mutex.RLock()
 		for k, v := range metrics {
 			sendRequest(host, "gauge", k, strconv.FormatFloat(v.GetMetrics(), 'f', -1, 64))
 		}
+
 		sendRequest(host, "counter", count.GetName(), strconv.Itoa(int(count.GetMetrics())))
+		mutex.RUnlock()
 		count.ClearCount()
 
 	}
