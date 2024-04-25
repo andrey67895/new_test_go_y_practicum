@@ -49,6 +49,28 @@ func sendMetrics(pollInterval time.Duration, host string) {
 	}
 }
 
+//func sendRequestJSON(host string, typeMetr string, nameMetr string, metrics string) {
+//	url := "http://" + host + "/update/" + typeMetr + "/" + nameMetr + "/" + metrics
+//	tJSON := model.JSONMetrics{}
+//	tJSON.ID = nameMetr
+//	tJSON.MType = typeMetr
+//	if typeMetr == "gauge" {
+//		tJSON.Value = metrics
+//	} else {
+//
+//	}
+//
+//	body, err := http.Post(url, "text/plain", nil)
+//	if err != nil {
+//		println(err.Error())
+//	} else {
+//		errClose := body.Body.Close()
+//		if errClose != nil {
+//			println(errClose.Error())
+//		}
+//	}
+//}
+
 func sendRequest(host string, typeMetr string, nameMetr string, metrics string) {
 	url := "http://" + host + "/update/" + typeMetr + "/" + nameMetr + "/" + metrics
 	body, err := http.Post(url, "text/plain", nil)

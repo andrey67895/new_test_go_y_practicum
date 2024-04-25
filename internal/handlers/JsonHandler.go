@@ -8,6 +8,7 @@ import (
 )
 
 func JSONMetHandler(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	tModel := model.JSONMetrics{}
 	err := json.NewDecoder(req.Body).Decode(&tModel)
 	if err != nil {
@@ -42,8 +43,6 @@ func JSONMetHandler(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Неверный тип метрики! Допустимые значения: gauge, counter", http.StatusBadRequest)
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	tJSON, _ := json.Marshal(tModel)
 	_, err = w.Write(tJSON)
@@ -54,6 +53,7 @@ func JSONMetHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func JSONGetMetHandler(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	tModel := model.JSONMetrics{}
 	err := json.NewDecoder(req.Body).Decode(&tModel)
 	if err != nil {
@@ -100,6 +100,5 @@ func JSONGetMetHandler(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Неверный тип метрики! Допустимые значения: gauge, counter", http.StatusBadRequest)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 }
