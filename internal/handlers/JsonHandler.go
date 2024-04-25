@@ -19,13 +19,13 @@ func JSONMetHandler(w http.ResponseWriter, req *http.Request) {
 	nameMet := tModel.ID
 
 	if typeMet == "gauge" {
-		valueMet := tModel.Value
+		valueMet := tModel.GetValue()
 		err = storage.LocalNewMemStorageGauge.SetGauge(nameMet, valueMet)
 		if err != nil {
 			return
 		}
 	} else if typeMet == "counter" {
-		valueMet := tModel.Delta
+		valueMet := tModel.GetDelta()
 		localCounter, err := storage.LocalNewMemStorageCounter.GetCounter(nameMet)
 		if err != nil {
 			err := storage.LocalNewMemStorageCounter.SetCounter(nameMet, valueMet)
@@ -33,8 +33,8 @@ func JSONMetHandler(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 		} else {
-			tModel.Delta = localCounter + valueMet
-			err = storage.LocalNewMemStorageCounter.SetCounter(nameMet, tModel.Delta)
+			tModel.SetDelta(localCounter + valueMet)
+			err = storage.LocalNewMemStorageCounter.SetCounter(nameMet, tModel.GetDelta())
 			if err != nil {
 				return
 			}
@@ -68,8 +68,10 @@ func JSONGetMetHandler(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, "Название метрики не найдено", http.StatusNotFound)
 			return
 		}
-		tModel.Value = localGauge
+		tModel.SetValue(localGauge)
+		println(localGauge)
 		marshal, err := json.Marshal(tModel)
+		println(string(marshal))
 		if err != nil {
 			http.Error(w, "Ошибка записи ответа", http.StatusNotFound)
 			return
@@ -85,7 +87,7 @@ func JSONGetMetHandler(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, "Название метрики не найдено", http.StatusNotFound)
 			return
 		}
-		tModel.Delta = localCounter
+		tModel.SetDelta(localCounter)
 		marshal, err := json.Marshal(tModel)
 		if err != nil {
 			http.Error(w, "Ошибка записи ответа", http.StatusNotFound)

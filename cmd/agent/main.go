@@ -58,6 +58,8 @@ func sendRequestJSONFloat(host string, typeMetr string, nameMetr string, metrics
 	tJSON.ID = nameMetr
 	tJSON.MType = typeMetr
 	tJSON.Value = metrics
+	println(nameMetr)
+	println(metrics)
 	tModel, _ := json.Marshal(tJSON)
 	body, err := http.Post(url, "application/json", bytes.NewBuffer(tModel))
 	if err != nil {
@@ -76,6 +78,8 @@ func sendRequestJSONInt(host string, typeMetr string, nameMetr string, metrics i
 	tJSON.ID = nameMetr
 	tJSON.MType = typeMetr
 	tJSON.Delta = metrics
+	println(nameMetr)
+	println(metrics)
 	tModel, _ := json.Marshal(tJSON)
 	body, err := http.Post(url, "application/json", bytes.NewBuffer(tModel))
 	if err != nil {
