@@ -7,8 +7,8 @@ import (
 	"net/http"
 )
 
-func JsonMetHandler(w http.ResponseWriter, req *http.Request) {
-	tModel := model.JsonMetrics{}
+func JSONMetHandler(w http.ResponseWriter, req *http.Request) {
+	tModel := model.JSONMetrics{}
 	err := json.NewDecoder(req.Body).Decode(&tModel)
 	if err != nil {
 		http.Error(w, "Ошибка десериализации!", http.StatusBadRequest)
@@ -45,16 +45,16 @@ func JsonMetHandler(w http.ResponseWriter, req *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	tJson, _ := json.Marshal(tModel)
-	_, err = w.Write(tJson)
+	tJSON, _ := json.Marshal(tModel)
+	_, err = w.Write(tJSON)
 	if err != nil {
 		http.Error(w, "Ошибка при записи ответа", http.StatusBadRequest)
 		return
 	}
 }
 
-func JsonGetMetHandler(w http.ResponseWriter, req *http.Request) {
-	tModel := model.JsonMetrics{}
+func JSONGetMetHandler(w http.ResponseWriter, req *http.Request) {
+	tModel := model.JSONMetrics{}
 	err := json.NewDecoder(req.Body).Decode(&tModel)
 	if err != nil {
 		http.Error(w, "Ошибка десериализации!", http.StatusBadRequest)
