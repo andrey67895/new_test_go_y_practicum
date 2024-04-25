@@ -21,7 +21,7 @@ func main() {
 	}
 	port := strings.Split(host, ":")[1]
 	r := chi.NewRouter()
-	r.Use(middleware.RealIP, middleware.Logger, middleware.Recoverer)
+	r.Use(middleware.RealIP, handlers.WithLogging, middleware.Recoverer)
 	r.Post("/update/{type}/{name}/{value}", handlers.MetHandler)
 	r.Get("/value/{type}/{name}", handlers.GetMetHandler)
 	r.Get("/", handlers.GetAll)
