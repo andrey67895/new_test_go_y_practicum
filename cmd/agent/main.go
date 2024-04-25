@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"flag"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
 	"log"
@@ -40,36 +42,51 @@ func sendMetrics(pollInterval time.Duration, host string) {
 		time.Sleep(pollInterval * time.Second)
 
 		for k, v := range metrics.GetDataMetrics() {
-			sendRequest(host, "gauge", k, strconv.FormatFloat(v.GetMetrics(), 'f', -1, 64))
+			sendRequestJSONFloat(host, "gauge", k, v.GetMetrics())
+			//sendRequest(host, "gauge", k, strconv.FormatFloat(v.GetMetrics(), 'f', -1, 64))
 		}
-
-		sendRequest(host, "counter", count.GetName(), strconv.Itoa(int(count.GetMetrics())))
+		sendRequestJSONInt(host, "counter", count.GetName(), count.GetMetrics())
+		//sendRequest(host, "counter", count.GetName(), strconv.Itoa(int(count.GetMetrics())))
 		count.ClearCount()
 
 	}
 }
 
-//func sendRequestJSON(host string, typeMetr string, nameMetr string, metrics string) {
-//	url := "http://" + host + "/update/" + typeMetr + "/" + nameMetr + "/" + metrics
-//	tJSON := model.JSONMetrics{}
-//	tJSON.ID = nameMetr
-//	tJSON.MType = typeMetr
-//	if typeMetr == "gauge" {
-//		tJSON.Value = metrics
-//	} else {
-//
-//	}
-//
-//	body, err := http.Post(url, "text/plain", nil)
-//	if err != nil {
-//		println(err.Error())
-//	} else {
-//		errClose := body.Body.Close()
-//		if errClose != nil {
-//			println(errClose.Error())
-//		}
-//	}
-//}
+func sendRequestJSONFloat(host string, typeMetr string, nameMetr string, metrics float64) {
+	url := "http://" + host + "/update/"
+	tJSON := model.JSONMetrics{}
+	tJSON.ID = nameMetr
+	tJSON.MType = typeMetr
+	tJSON.Value = metrics
+	tModel, _ := json.Marshal(tJSON)
+	body, err := http.Post(url, "application/json", bytes.NewBuffer(tModel))
+	if err != nil {
+		println(err.Error())
+	} else {
+		errClose := body.Body.Close()
+		if errClose != nil {
+			println(errClose.Error())
+		}
+	}
+}
+
+func sendRequestJSONInt(host string, typeMetr string, nameMetr string, metrics int64) {
+	url := "http://" + host + "/update/"
+	tJSON := model.JSONMetrics{}
+	tJSON.ID = nameMetr
+	tJSON.MType = typeMetr
+	tJSON.Delta = metrics
+	tModel, _ := json.Marshal(tJSON)
+	body, err := http.Post(url, "application/json", bytes.NewBuffer(tModel))
+	if err != nil {
+		println(err.Error())
+	} else {
+		errClose := body.Body.Close()
+		if errClose != nil {
+			println(errClose.Error())
+		}
+	}
+}
 
 func sendRequest(host string, typeMetr string, nameMetr string, metrics string) {
 	url := "http://" + host + "/update/" + typeMetr + "/" + nameMetr + "/" + metrics
