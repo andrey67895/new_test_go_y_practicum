@@ -23,6 +23,8 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.RealIP, handlers.WithLogging, middleware.Recoverer)
 	r.Post("/update/{type}/{name}/{value}", handlers.MetHandler)
+	r.Post("/update/", handlers.JsonMetHandler)
+	r.Post("/value/", handlers.JsonGetMetHandler)
 	r.Get("/value/{type}/{name}", handlers.GetMetHandler)
 	r.Get("/", handlers.GetAll)
 	log.Fatal(http.ListenAndServe(":"+port, r))
