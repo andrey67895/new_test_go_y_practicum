@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 func GetAll(w http.ResponseWriter, _ *http.Request) {
@@ -57,6 +58,17 @@ func GetMetHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func MetHandler(w http.ResponseWriter, req *http.Request) {
+	contentEncoding := req.Header.Get("Content-Encoding")
+	sendsGzip := strings.Contains(contentEncoding, "gzip")
+	if sendsGzip {
+		cr, err := newCompressReader(req.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		req.Body = cr.r
+		defer cr.zr.Close()
+	}
 	typeMet := chi.URLParam(req, "type")
 	nameMet := chi.URLParam(req, "name")
 

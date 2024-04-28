@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"flag"
+	"github.com/andrey67895/new_test_go_y_practicum/internal/helpers"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
 	"log"
 	"math/rand"
@@ -59,7 +60,11 @@ func sendRequestJSONFloat(host string, typeMetr string, nameMetr string, metrics
 	tJSON.MType = typeMetr
 	tJSON.SetValue(metrics)
 	tModel, _ := json.Marshal(tJSON)
-	body, err := http.Post(url, "application/json", bytes.NewBuffer(tModel))
+	client := &http.Client{}
+	r, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(helpers.Compress(tModel)))
+	r.Header.Add("Content-Encoding", "gzip")
+	r.Header.Add("Content-Type", "application/json")
+	body, err := client.Do(r)
 	if err != nil {
 		println(err.Error())
 	} else {
@@ -77,7 +82,11 @@ func sendRequestJSONInt(host string, typeMetr string, nameMetr string, metrics i
 	tJSON.MType = typeMetr
 	tJSON.SetDelta(metrics)
 	tModel, _ := json.Marshal(tJSON)
-	body, err := http.Post(url, "application/json", bytes.NewBuffer(tModel))
+	client := &http.Client{}
+	r, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(helpers.Compress(tModel)))
+	r.Header.Add("Content-Encoding", "gzip")
+	r.Header.Add("Content-Type", "application/json")
+	body, err := client.Do(r)
 	if err != nil {
 		println(err.Error())
 	} else {
