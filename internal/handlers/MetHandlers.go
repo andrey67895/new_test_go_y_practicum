@@ -10,6 +10,8 @@ import (
 )
 
 func GetAll(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Content-Type", "html/text")
+	w.WriteHeader(http.StatusOK)
 	for k, v := range storage.LocalNewMemStorageGauge.GetData() {
 		_, err := w.Write([]byte("Name: " + k + ". Value: " + fmt.Sprint(v) + "\n"))
 		if err != nil {
@@ -22,8 +24,6 @@ func GetAll(w http.ResponseWriter, _ *http.Request) {
 			return
 		}
 	}
-	w.Header().Set("Content-Type", "html/text")
-	w.WriteHeader(http.StatusOK)
 }
 
 func GetMetHandler(w http.ResponseWriter, req *http.Request) {
