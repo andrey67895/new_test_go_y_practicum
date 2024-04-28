@@ -56,7 +56,6 @@ func JSONMetHandler(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 	} else {
-		println(err.Error())
 		http.Error(w, "Неверный тип метрики! Допустимые значения: gauge, counter", http.StatusBadRequest)
 		return
 	}
