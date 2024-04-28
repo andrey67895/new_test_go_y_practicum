@@ -22,6 +22,7 @@ func GetAll(w http.ResponseWriter, _ *http.Request) {
 			return
 		}
 	}
+	w.Header().Set("Content-Type", "html/text")
 	w.WriteHeader(http.StatusOK)
 }
 
