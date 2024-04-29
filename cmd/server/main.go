@@ -133,7 +133,7 @@ func Save(fname string, storeInterval int) {
 
 		err = os.MkdirAll(filepath.Dir(fname), 0666)
 		if err != nil {
-			println(err)
+			println(err.Error())
 			return
 		}
 		_, err = os.OpenFile(fname, os.O_WRONLY|os.O_CREATE, 0666)

@@ -117,9 +117,7 @@ func JSONGetMetHandler(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 		tModel.SetValue(localGauge)
-		println(localGauge)
 		marshal, err := json.Marshal(tModel)
-		println(string(marshal))
 		if err != nil {
 			http.Error(w, "Ошибка записи ответа", http.StatusNotFound)
 			return
