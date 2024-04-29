@@ -72,11 +72,11 @@ func CreateData(fname string) {
 	}
 	for i := 0; i < len(tModel); i++ {
 		metric := tModel[i]
-		SaveLocalData(metric)
+		SaveData(metric)
 	}
 }
 
-func SaveLocalData(tModel model.JSONMetrics) {
+func SaveData(tModel model.JSONMetrics) {
 	typeMet := tModel.MType
 	nameMet := tModel.ID
 
@@ -128,20 +128,24 @@ func Save(fname string, storeInterval int) {
 		data, err := json.MarshalIndent(tModel, "", "   ")
 		if err != nil {
 			println(err.Error())
+			return
 		}
 
 		err = os.MkdirAll(filepath.Dir(fname), 0666)
 		if err != nil {
-			panic(err)
+			println(err)
+			return
 		}
 		_, err = os.OpenFile(fname, os.O_WRONLY|os.O_CREATE, 0666)
 
 		if err != nil {
 			println(err.Error())
+			return
 		}
 		err = os.WriteFile(fname, data, 0666)
 		if err != nil {
 			println(err.Error())
+			return
 		}
 	}
 }
