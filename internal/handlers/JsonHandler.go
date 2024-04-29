@@ -69,6 +69,37 @@ func JSONMetHandler(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func SaveLocalData(tModel model.JSONMetrics) {
+	typeMet := tModel.MType
+	nameMet := tModel.ID
+
+	if typeMet == "gauge" {
+		valueMet := tModel.GetValue()
+		err := storage.LocalNewMemStorageGauge.SetGauge(nameMet, valueMet)
+		if err != nil {
+			println(err.Error())
+			return
+		}
+	} else if typeMet == "counter" {
+		valueMet := tModel.GetDelta()
+		localCounter, err := storage.LocalNewMemStorageCounter.GetCounter(nameMet)
+		if err != nil {
+			err := storage.LocalNewMemStorageCounter.SetCounter(nameMet, valueMet)
+			if err != nil {
+				println(err.Error())
+				return
+			}
+		} else {
+			tModel.SetDelta(localCounter + valueMet)
+			err = storage.LocalNewMemStorageCounter.SetCounter(nameMet, tModel.GetDelta())
+			if err != nil {
+				println(err.Error())
+				return
+			}
+		}
+	}
+}
+
 func JSONGetMetHandler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	tModel := model.JSONMetrics{}
