@@ -118,10 +118,10 @@ func Save(fname string, storeInterval int) {
 			tJSON.MType = "gauge"
 			tModel = append(tModel, tJSON)
 		}
-		for k, v := range storage.LocalNewMemStorageCounter.GetData() {
+		for k, val := range storage.LocalNewMemStorageCounter.GetData() {
 			tJSON := model.JSONMetrics{}
 			tJSON.ID = k
-			tJSON.Delta = &v
+			tJSON.Delta = &val
 			tJSON.MType = "counter"
 			tModel = append(tModel, tJSON)
 		}
