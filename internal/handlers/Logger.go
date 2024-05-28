@@ -35,6 +35,7 @@ func WithLogging(h http.Handler) http.Handler {
 		panic(err)
 	}
 	defer logger.Sync()
+
 	sugar := *logger.Sugar()
 	logFn := func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now().Local()
