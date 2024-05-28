@@ -32,14 +32,14 @@ func JSONMetHandler(w http.ResponseWriter, req *http.Request) {
 	nameMet := tModel.ID
 
 	if typeMet == "gauge" {
-		valueMet := tModel.GetValue()
+		valueMet := *tModel.Value
 		err = storage.LocalNewMemStorageGauge.SetGauge(nameMet, valueMet)
 		if err != nil {
 			println(err.Error())
 			return
 		}
 	} else if typeMet == "counter" {
-		valueMet := tModel.GetDelta()
+		valueMet := *tModel.Delta
 		localCounter, err := storage.LocalNewMemStorageCounter.GetCounter(nameMet)
 		if err != nil {
 			err := storage.LocalNewMemStorageCounter.SetCounter(nameMet, valueMet)
@@ -48,8 +48,8 @@ func JSONMetHandler(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 		} else {
-			tModel.SetDelta(localCounter + valueMet)
-			err = storage.LocalNewMemStorageCounter.SetCounter(nameMet, tModel.GetDelta())
+			*tModel.Delta = localCounter + valueMet
+			err = storage.LocalNewMemStorageCounter.SetCounter(nameMet, *tModel.Delta)
 			if err != nil {
 				println(err.Error())
 				return
@@ -74,14 +74,14 @@ func SaveLocalData(tModel model.JSONMetrics) {
 	nameMet := tModel.ID
 
 	if typeMet == "gauge" {
-		valueMet := tModel.GetValue()
+		valueMet := *tModel.Value
 		err := storage.LocalNewMemStorageGauge.SetGauge(nameMet, valueMet)
 		if err != nil {
 			println(err.Error())
 			return
 		}
 	} else if typeMet == "counter" {
-		valueMet := tModel.GetDelta()
+		valueMet := *tModel.Delta
 		localCounter, err := storage.LocalNewMemStorageCounter.GetCounter(nameMet)
 		if err != nil {
 			err := storage.LocalNewMemStorageCounter.SetCounter(nameMet, valueMet)
@@ -90,8 +90,8 @@ func SaveLocalData(tModel model.JSONMetrics) {
 				return
 			}
 		} else {
-			tModel.SetDelta(localCounter + valueMet)
-			err = storage.LocalNewMemStorageCounter.SetCounter(nameMet, tModel.GetDelta())
+			*tModel.Delta = localCounter + valueMet
+			err = storage.LocalNewMemStorageCounter.SetCounter(nameMet, *tModel.Delta)
 			if err != nil {
 				println(err.Error())
 				return
@@ -116,7 +116,7 @@ func JSONGetMetHandler(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, "Название метрики не найдено", http.StatusNotFound)
 			return
 		}
-		tModel.SetValue(localGauge)
+		tModel.Value = &localGauge
 		marshal, err := json.Marshal(tModel)
 		if err != nil {
 			http.Error(w, "Ошибка записи ответа", http.StatusNotFound)
@@ -133,7 +133,7 @@ func JSONGetMetHandler(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, "Название метрики не найдено", http.StatusNotFound)
 			return
 		}
-		tModel.SetDelta(localCounter)
+		tModel.Delta = &localCounter
 		marshal, err := json.Marshal(tModel)
 		if err != nil {
 			http.Error(w, "Ошибка записи ответа", http.StatusNotFound)
