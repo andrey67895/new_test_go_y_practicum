@@ -2,6 +2,7 @@ package storage
 
 import (
 	"errors"
+	"log"
 	"sync"
 )
 
@@ -59,6 +60,7 @@ func (e *MemStorageGauge) GetGauge(key string) (float64, error) {
 	defer e.mut.RUnlock()
 	value, ok := e.data[key]
 	if !ok {
+		log.Println("Ошибка")
 		return 0, errors.New("key not found")
 	}
 	return value, nil
