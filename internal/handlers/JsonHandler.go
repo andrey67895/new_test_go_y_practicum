@@ -117,7 +117,7 @@ func JSONGetMetHandler(w http.ResponseWriter, req *http.Request) {
 	if typeMet == "gauge" {
 
 		localGauge, err := storage.LocalNewMemStorageGauge.GetGauge(nameMet)
-		log.Println(fmt.Sprintf("%s ::: %f", nameMet, localGauge))
+
 		if err != nil {
 			http.Error(w, "Название метрики не найдено", http.StatusNotFound)
 			return
@@ -129,6 +129,7 @@ func JSONGetMetHandler(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 		_, errWrite := w.Write(marshal)
+		log.Println(fmt.Sprintf("%s ::: %f ::: %s", nameMet, localGauge, marshal))
 		if errWrite != nil {
 			return
 		}
