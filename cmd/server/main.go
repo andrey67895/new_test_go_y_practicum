@@ -81,14 +81,14 @@ func SaveData(tModel model.JSONMetrics) {
 	nameMet := tModel.ID
 
 	if typeMet == "gauge" {
-		valueMet := tModel.GetValue()
+		valueMet := *tModel.Value
 		err := storage.LocalNewMemStorageGauge.SetGauge(nameMet, valueMet)
 		if err != nil {
 			println(err.Error())
 			return
 		}
 	} else if typeMet == "counter" {
-		valueMet := tModel.GetDelta()
+		valueMet := *tModel.Delta
 		localCounter, err := storage.LocalNewMemStorageCounter.GetCounter(nameMet)
 		if err != nil {
 			err := storage.LocalNewMemStorageCounter.SetCounter(nameMet, valueMet)
@@ -97,8 +97,8 @@ func SaveData(tModel model.JSONMetrics) {
 				return
 			}
 		} else {
-			tModel.SetDelta(localCounter + valueMet)
-			err = storage.LocalNewMemStorageCounter.SetCounter(nameMet, tModel.GetDelta())
+			*tModel.Delta = localCounter + valueMet
+			err = storage.LocalNewMemStorageCounter.SetCounter(nameMet, *tModel.Delta)
 			if err != nil {
 				println(err.Error())
 				return
@@ -114,14 +114,14 @@ func Save(fname string, storeInterval int) {
 		for k, v := range storage.LocalNewMemStorageGauge.GetData() {
 			tJSON := model.JSONMetrics{}
 			tJSON.ID = k
-			tJSON.SetValue(v)
+			tJSON.Value = &v
 			tJSON.MType = "gauge"
 			tModel = append(tModel, tJSON)
 		}
 		for k, v := range storage.LocalNewMemStorageCounter.GetData() {
 			tJSON := model.JSONMetrics{}
 			tJSON.ID = k
-			tJSON.SetDelta(v)
+			tJSON.Delta = &v
 			tJSON.MType = "counter"
 			tModel = append(tModel, tJSON)
 		}
