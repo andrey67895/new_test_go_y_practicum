@@ -6,7 +6,9 @@ import (
 )
 
 func Compress(data []byte) []byte {
+
 	var b bytes.Buffer
+
 	w := gzip.NewWriter(&b)
 	_, err := w.Write(data)
 	if err != nil {
