@@ -112,11 +112,11 @@ func Save(fname string, storeInterval int) {
 		time.Sleep(time.Duration(storeInterval) * time.Second)
 		var tModel []model.JSONMetrics
 		for k, v := range storage.LocalNewMemStorageGauge.GetData() {
-			tJSON := new(model.JSONMetrics)
+			tJSON := model.JSONMetrics{}
 			tJSON.ID = k
-			tJSON.Value = &v
+			tJSON.SetValue(v)
 			tJSON.MType = "gauge"
-			tModel = append(tModel, *tJSON)
+			tModel = append(tModel, tJSON)
 		}
 		for k, v := range storage.LocalNewMemStorageCounter.GetData() {
 			tJSON := model.JSONMetrics{}
