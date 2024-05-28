@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -113,7 +115,9 @@ func JSONGetMetHandler(w http.ResponseWriter, req *http.Request) {
 	typeMet := tModel.MType
 	nameMet := tModel.ID
 	if typeMet == "gauge" {
+
 		localGauge, err := storage.LocalNewMemStorageGauge.GetGauge(nameMet)
+		log.Println(fmt.Sprintf("%s ::: %f", nameMet, localGauge))
 		if err != nil {
 			http.Error(w, "Название метрики не найдено", http.StatusNotFound)
 			return
