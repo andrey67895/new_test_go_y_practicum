@@ -2,15 +2,14 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 
+	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/handlers"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
@@ -18,32 +17,8 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-var host string
-var storeInterval int
-var fileStoragePath string
-var restore bool
-
 func main() {
-	flag.StringVar(&host, "a", "localhost:8080", "host for server")
-	flag.Parse()
-	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
-		host = envRunAddr
-	}
-	port := strings.Split(host, ":")[1]
-
-	flag.IntVar(&storeInterval, "i", 300, "интервал времени в секундах, по истечении которого текущие показания сервера сохраняются на диск")
-	flag.StringVar(&fileStoragePath, "f", "tmp/metrics-db.json", "полное имя файла, куда сохраняются текущие значения ")
-	flag.BoolVar(&restore, "r", true, "загружать или нет ранее сохранённые значения из указанного файла при старте сервера")
-	flag.Parse()
-	if envStoreInterval := os.Getenv("STORE_INTERVAL"); envStoreInterval != "" {
-		storeInterval = getValueInEnv(envStoreInterval)
-	}
-	if envFileStoragePath := os.Getenv("FILE_STORAGE_PATH"); envFileStoragePath != "" {
-		fileStoragePath = envFileStoragePath
-	}
-	if envRestore := os.Getenv("RESTORE"); envRestore != "" {
-		restore = getBool(envRestore)
-	}
+	config.InitServerConfig()
 
 	r := chi.NewRouter()
 	r.Use(middleware.RealIP, handlers.WithLogging, middleware.Recoverer, handlers.GzipHandleResponse)
@@ -52,13 +27,13 @@ func main() {
 	r.Post("/value/", handlers.JSONGetMetHandler)
 	r.Get("/value/{type}/{name}", handlers.GetMetHandler)
 	r.Get("/", handlers.GetAll)
-	if fileStoragePath != "" {
-		if restore {
-			CreateData(fileStoragePath)
+	if config.FileStoragePathServer != "" {
+		if config.RestoreServer {
+			CreateData(config.FileStoragePathServer)
 		}
-		go Save(fileStoragePath, storeInterval)
+		go Save(config.FileStoragePathServer, config.StoreIntervalServer)
 	}
-	log.Fatal(http.ListenAndServe(":"+port, r))
+	log.Fatal(http.ListenAndServe(":"+config.PortServer, r))
 }
 
 func CreateData(fname string) {
@@ -157,13 +132,4 @@ func getValueInEnv(env string) int {
 		log.Fatal(err)
 	}
 	return envInt
-}
-
-func getBool(env string) bool {
-
-	boolValue, err := strconv.ParseBool(env)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return boolValue
 }

@@ -3,15 +3,13 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"flag"
 	"log"
 	"math/rand"
 	"net/http"
-	"os"
 	"runtime"
-	"strconv"
 	"time"
 
+	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/helpers"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
 )
@@ -111,36 +109,12 @@ func sendRequest(host string, typeMetr string, nameMetr string, metrics string) 
 	}
 }
 
-var host string
-var reportInterval int
-var pollInterval int
-
 func main() {
-	flag.StringVar(&host, "a", "localhost:8080", "host for server")
-	flag.IntVar(&reportInterval, "r", 10, "reportInterval for send metrics to server")
-	flag.IntVar(&pollInterval, "p", 2, "pollInterval for update metrics")
-	flag.Parse()
-	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
-		host = envRunAddr
-	}
-	if envReportInterval := os.Getenv("REPORT_INTERVAL"); envReportInterval != "" {
-		reportInterval = getValueInEnv(envReportInterval)
-	}
-	if envPollInterval := os.Getenv("POLL_INTERVAL"); envPollInterval != "" {
-		pollInterval = getValueInEnv(envPollInterval)
-	}
-	go updateMetrics(time.Duration(pollInterval))
-	go sendMetrics(time.Duration(reportInterval), host)
+	config.InitAgentConfig()
+	go updateMetrics(time.Duration(config.PollIntervalAgent))
+	go sendMetrics(time.Duration(config.ReportIntervalAgent), config.HostAgent)
 	server := http.Server{}
 	log.Fatal(server.ListenAndServe())
-}
-
-func getValueInEnv(env string) int {
-	envInt, err := strconv.Atoi(env)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return envInt
 }
 
 func getMemByStats(name string) float64 {
