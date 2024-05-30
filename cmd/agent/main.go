@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"flag"
-	"github.com/andrey67895/new_test_go_y_practicum/internal/helpers"
-	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
 	"log"
 	"math/rand"
 	"net/http"
@@ -13,6 +11,9 @@ import (
 	"runtime"
 	"strconv"
 	"time"
+
+	"github.com/andrey67895/new_test_go_y_practicum/internal/helpers"
+	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
 )
 
 var metricsName = []string{"Alloc", "BuckHashSys", "Frees", "GCCPUFraction", "GCSys", "HeapAlloc",

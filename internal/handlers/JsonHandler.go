@@ -2,10 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
-	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
 	"net/http"
 	"strings"
+
+	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
+	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
 )
 
 func JSONMetHandler(w http.ResponseWriter, req *http.Request) {

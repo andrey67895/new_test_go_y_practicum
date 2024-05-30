@@ -3,11 +3,6 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"github.com/andrey67895/new_test_go_y_practicum/internal/handlers"
-	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
-	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	"log"
 	"net/http"
 	"os"
@@ -15,6 +10,12 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/andrey67895/new_test_go_y_practicum/internal/handlers"
+	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
+	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 var host string

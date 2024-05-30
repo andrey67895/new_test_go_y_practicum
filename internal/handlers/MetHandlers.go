@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
-	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
+	"github.com/go-chi/chi/v5"
 )
 
 func GetAll(w http.ResponseWriter, _ *http.Request) {
