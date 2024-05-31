@@ -19,22 +19,22 @@ func main() {
 	config.InitServerConfig()
 	if config.FileStoragePathServer != "" {
 		if config.RestoreServer {
-			CreateData(config.FileStoragePathServer)
+			RestoringDataFromFile(config.FileStoragePathServer)
 		}
 		go Save(config.FileStoragePathServer, config.StoreIntervalServer)
 	}
 	log.Fatal(http.ListenAndServe(":"+config.PortServer, router.GetRoutersForServer()))
 }
 
-func CreateData(fname string) {
+func RestoringDataFromFile(fname string) {
 	data, err := os.ReadFile(fname)
 	if err != nil {
-		println(err.Error())
+		log.Println(err.Error())
 		return
 	}
 	var tModel []model.JSONMetrics
 	if err := json.Unmarshal(data, &tModel); err != nil {
-		println(err.Error())
+		log.Println(err.Error())
 	}
 	for i := 0; i < len(tModel); i++ {
 		metric := tModel[i]
@@ -46,31 +46,33 @@ func SaveData(tModel model.JSONMetrics) {
 	typeMet := tModel.MType
 	nameMet := tModel.ID
 
-	if typeMet == "gauge" {
+	switch typeMet {
+	case "gauge":
 		valueMet := tModel.GetValue()
 		err := storage.LocalNewMemStorageGauge.SetGauge(nameMet, valueMet)
 		if err != nil {
-			println(err.Error())
+			log.Println(err.Error())
 			return
 		}
-	} else if typeMet == "counter" {
+	case "counter":
 		valueMet := tModel.GetDelta()
 		localCounter, err := storage.LocalNewMemStorageCounter.GetCounter(nameMet)
 		if err != nil {
 			err := storage.LocalNewMemStorageCounter.SetCounter(nameMet, valueMet)
 			if err != nil {
-				println(err.Error())
+				log.Println(err.Error())
 				return
-			}
-		} else {
-			tModel.SetDelta(localCounter + valueMet)
-			err = storage.LocalNewMemStorageCounter.SetCounter(nameMet, tModel.GetDelta())
-			if err != nil {
-				println(err.Error())
-				return
+			} else {
+				tModel.SetDelta(localCounter + valueMet)
+				err = storage.LocalNewMemStorageCounter.SetCounter(nameMet, tModel.GetDelta())
+				if err != nil {
+					log.Println(err.Error())
+					return
+				}
 			}
 		}
 	}
+
 }
 
 func Save(fname string, storeInterval int) {
@@ -93,24 +95,24 @@ func Save(fname string, storeInterval int) {
 		}
 		data, err := json.MarshalIndent(tModel, "", "   ")
 		if err != nil {
-			println(err.Error())
+			log.Println(err.Error())
 			return
 		}
 
 		err = os.MkdirAll(filepath.Dir(fname), 0666)
 		if err != nil {
-			println(err.Error())
+			log.Println(err.Error())
 			return
 		}
 		_, err = os.OpenFile(fname, os.O_WRONLY|os.O_CREATE, 0666)
 
 		if err != nil {
-			println(err.Error())
+			log.Println(err.Error())
 			return
 		}
 		err = os.WriteFile(fname, data, 0666)
 		if err != nil {
-			println(err.Error())
+			log.Println(err.Error())
 			return
 		}
 	}

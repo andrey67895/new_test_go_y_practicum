@@ -29,7 +29,7 @@ func updateMetrics(pollInterval time.Duration) {
 		for _, statName := range metricsName {
 			err := metrics.SetDataMetrics(statName, model.NewGauge(statName, getMemByStats(statName)))
 			if err != nil {
-				println(err.Error())
+				log.Println(err.Error())
 			}
 		}
 		count.UpdateCountPlusOne()
@@ -65,11 +65,11 @@ func sendRequestJSONFloat(host string, typeMetr string, nameMetr string, metrics
 	r.Header.Add("Content-Type", "application/json")
 	body, err := client.Do(r)
 	if err != nil {
-		println(err.Error())
+		log.Println(err.Error())
 	} else {
 		errClose := body.Body.Close()
 		if errClose != nil {
-			println(errClose.Error())
+			log.Println(errClose.Error())
 		}
 	}
 }
@@ -87,11 +87,11 @@ func sendRequestJSONInt(host string, typeMetr string, nameMetr string, metrics i
 	r.Header.Add("Content-Type", "application/json")
 	body, err := client.Do(r)
 	if err != nil {
-		println(err.Error())
+		log.Println(err.Error())
 	} else {
 		errClose := body.Body.Close()
 		if errClose != nil {
-			println(errClose.Error())
+			log.Println(errClose.Error())
 		}
 	}
 }
@@ -100,11 +100,11 @@ func sendRequest(host string, typeMetr string, nameMetr string, metrics string) 
 	url := "http://" + host + "/update/" + typeMetr + "/" + nameMetr + "/" + metrics
 	body, err := http.Post(url, "text/plain", nil)
 	if err != nil {
-		println(err.Error())
+		log.Println(err.Error())
 	} else {
 		errClose := body.Body.Close()
 		if errClose != nil {
-			println(errClose.Error())
+			log.Println(errClose.Error())
 		}
 	}
 }

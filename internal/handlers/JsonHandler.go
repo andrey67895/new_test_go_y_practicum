@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strings"
 
@@ -25,7 +26,7 @@ func JSONMetHandler(w http.ResponseWriter, req *http.Request) {
 	tModel := model.JSONMetrics{}
 	err := json.NewDecoder(req.Body).Decode(&tModel)
 	if err != nil {
-		println(err.Error())
+		log.Println(err.Error())
 		http.Error(w, "Ошибка десериализации!", http.StatusBadRequest)
 		return
 	}
@@ -36,7 +37,7 @@ func JSONMetHandler(w http.ResponseWriter, req *http.Request) {
 		valueMet := tModel.GetValue()
 		err = storage.LocalNewMemStorageGauge.SetGauge(nameMet, valueMet)
 		if err != nil {
-			println(err.Error())
+			log.Println(err.Error())
 			return
 		}
 	} else if typeMet == "counter" {
@@ -45,14 +46,14 @@ func JSONMetHandler(w http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			err := storage.LocalNewMemStorageCounter.SetCounter(nameMet, valueMet)
 			if err != nil {
-				println(err.Error())
+				log.Println(err.Error())
 				return
 			}
 		} else {
 			tModel.SetDelta(localCounter + valueMet)
 			err = storage.LocalNewMemStorageCounter.SetCounter(nameMet, tModel.GetDelta())
 			if err != nil {
-				println(err.Error())
+				log.Println(err.Error())
 				return
 			}
 		}
@@ -64,7 +65,7 @@ func JSONMetHandler(w http.ResponseWriter, req *http.Request) {
 	tJSON, _ := json.Marshal(tModel)
 	_, err = w.Write(tJSON)
 	if err != nil {
-		println(err.Error())
+		log.Println(err.Error())
 		http.Error(w, "Ошибка при записи ответа", http.StatusBadRequest)
 		return
 	}
@@ -78,7 +79,7 @@ func SaveLocalData(tModel model.JSONMetrics) {
 		valueMet := tModel.GetValue()
 		err := storage.LocalNewMemStorageGauge.SetGauge(nameMet, valueMet)
 		if err != nil {
-			println(err.Error())
+			log.Println(err.Error())
 			return
 		}
 	} else if typeMet == "counter" {
@@ -87,14 +88,14 @@ func SaveLocalData(tModel model.JSONMetrics) {
 		if err != nil {
 			err := storage.LocalNewMemStorageCounter.SetCounter(nameMet, valueMet)
 			if err != nil {
-				println(err.Error())
+				log.Println(err.Error())
 				return
 			}
 		} else {
 			tModel.SetDelta(localCounter + valueMet)
 			err = storage.LocalNewMemStorageCounter.SetCounter(nameMet, tModel.GetDelta())
 			if err != nil {
-				println(err.Error())
+				log.Println(err.Error())
 				return
 			}
 		}
