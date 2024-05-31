@@ -75,44 +75,49 @@ func SaveData(tModel model.JSONMetrics) {
 }
 
 func Save(fname string, storeInterval int) {
+	ticker := time.NewTicker(time.Duration(storeInterval) * time.Second)
 	for {
-		time.Sleep(time.Duration(storeInterval) * time.Second)
-		var tModel []model.JSONMetrics
-		for k, v := range storage.LocalNewMemStorageGauge.GetData() {
-			tJSON := model.JSONMetrics{}
-			tJSON.ID = k
-			tJSON.SetValue(v)
-			tJSON.MType = "gauge"
-			tModel = append(tModel, tJSON)
-		}
-		for k, v := range storage.LocalNewMemStorageCounter.GetData() {
-			tJSON := model.JSONMetrics{}
-			tJSON.ID = k
-			tJSON.SetDelta(v)
-			tJSON.MType = "counter"
-			tModel = append(tModel, tJSON)
-		}
-		data, err := json.MarshalIndent(tModel, "", "   ")
-		if err != nil {
-			log.Println(err.Error())
-			return
+		select {
+		case t := <-ticker.C:
+			var tModel []model.JSONMetrics
+			for k, v := range storage.LocalNewMemStorageGauge.GetData() {
+				tJSON := model.JSONMetrics{}
+				tJSON.ID = k
+				tJSON.SetValue(v)
+				tJSON.MType = "gauge"
+				tModel = append(tModel, tJSON)
+			}
+			for k, v := range storage.LocalNewMemStorageCounter.GetData() {
+				tJSON := model.JSONMetrics{}
+				tJSON.ID = k
+				tJSON.SetDelta(v)
+				tJSON.MType = "counter"
+				tModel = append(tModel, tJSON)
+			}
+			data, err := json.MarshalIndent(tModel, "", "   ")
+			if err != nil {
+				log.Println(err.Error())
+				return
+			}
+
+			err = os.MkdirAll(filepath.Dir(fname), 0666)
+			if err != nil {
+				log.Println(err.Error())
+				return
+			}
+			_, err = os.OpenFile(fname, os.O_WRONLY|os.O_CREATE, 0666)
+
+			if err != nil {
+				log.Println(err.Error())
+				return
+			}
+			err = os.WriteFile(fname, data, 0666)
+			if err != nil {
+				log.Println(err.Error())
+				return
+			}
+			log.Println("Save Data file at: ", t)
 		}
 
-		err = os.MkdirAll(filepath.Dir(fname), 0666)
-		if err != nil {
-			log.Println(err.Error())
-			return
-		}
-		_, err = os.OpenFile(fname, os.O_WRONLY|os.O_CREATE, 0666)
-
-		if err != nil {
-			log.Println(err.Error())
-			return
-		}
-		err = os.WriteFile(fname, data, 0666)
-		if err != nil {
-			log.Println(err.Error())
-			return
-		}
 	}
 }
