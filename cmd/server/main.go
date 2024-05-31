@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strconv"
 	"time"
 
 	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
@@ -116,12 +115,4 @@ func Save(fname string, storeInterval int) {
 			return
 		}
 	}
-}
-
-func getValueInEnv(env string) int {
-	envInt, err := strconv.Atoi(env)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return envInt
 }

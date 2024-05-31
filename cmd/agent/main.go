@@ -96,19 +96,6 @@ func sendRequestJSONInt(host string, typeMetr string, nameMetr string, metrics i
 	}
 }
 
-func sendRequest(host string, typeMetr string, nameMetr string, metrics string) {
-	url := "http://" + host + "/update/" + typeMetr + "/" + nameMetr + "/" + metrics
-	body, err := http.Post(url, "text/plain", nil)
-	if err != nil {
-		log.Println(err.Error())
-	} else {
-		errClose := body.Body.Close()
-		if errClose != nil {
-			log.Println(errClose.Error())
-		}
-	}
-}
-
 func main() {
 	config.InitAgentConfig()
 	go updateMetrics(time.Duration(config.PollIntervalAgent))
