@@ -22,7 +22,7 @@ func InitServerConfig() {
 	}
 	PortServer = strings.Split(HostServer, ":")[1]
 
-	flag.IntVar(&StoreIntervalServer, "i", 10, "интервал времени в секундах, по истечении которого текущие показания сервера сохраняются на диск")
+	flag.IntVar(&StoreIntervalServer, "i", 300, "интервал времени в секундах, по истечении которого текущие показания сервера сохраняются на диск")
 	flag.StringVar(&FileStoragePathServer, "f", "tmp/metrics-db.json", "полное имя файла, куда сохраняются текущие значения ")
 	flag.BoolVar(&RestoreServer, "r", true, "загружать или нет ранее сохранённые значения из указанного файла при старте сервера")
 	flag.Parse()
