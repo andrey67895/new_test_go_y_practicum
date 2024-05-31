@@ -79,13 +79,11 @@ func SaveData(tModel model.JSONMetrics) {
 func SaveDataForInterval(fname string, storeInterval int) {
 	if storeInterval > 0 {
 		ticker := time.NewTicker(time.Duration(storeInterval) * time.Second)
-		for {
-			select {
-			case t := <-ticker.C:
-				SaveDataInFile(fname)
-				log.Error("Save Data file at: ", t)
-			}
+		for range ticker.C {
+			SaveDataInFile(fname)
+			log.Error("Save Data file at: ", time.Now())
 		}
+
 	} else {
 		for {
 			SaveDataInFile(fname)
