@@ -2,13 +2,15 @@ package handlers
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"strings"
 
+	"github.com/andrey67895/new_test_go_y_practicum/internal/logger"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
 )
+
+var log = logger.Log()
 
 func JSONMetHandler(w http.ResponseWriter, req *http.Request) {
 	contentEncoding := req.Header.Get("Content-Encoding")
@@ -26,38 +28,38 @@ func JSONMetHandler(w http.ResponseWriter, req *http.Request) {
 	var tModel model.JSONMetrics
 	err := json.NewDecoder(req.Body).Decode(&tModel)
 	if err != nil {
-		log.Println(err.Error())
+		log.Error(err.Error())
 		http.Error(w, "Ошибка десериализации!", http.StatusBadRequest)
 		return
 	}
 	typeMet := tModel.MType
 	nameMet := tModel.ID
-
-	if typeMet == "gauge" {
+	switch typeMet {
+	case "gauge":
 		valueMet := tModel.GetValue()
 		err = storage.LocalNewMemStorageGauge.SetGauge(nameMet, valueMet)
 		if err != nil {
-			log.Println(err.Error())
+			log.Error(err.Error())
 			return
 		}
-	} else if typeMet == "counter" {
+	case "counter":
 		valueMet := tModel.GetDelta()
 		localCounter, err := storage.LocalNewMemStorageCounter.GetCounter(nameMet)
 		if err != nil {
 			err := storage.LocalNewMemStorageCounter.SetCounter(nameMet, valueMet)
 			if err != nil {
-				log.Println(err.Error())
+				log.Error(err.Error())
 				return
 			}
 		} else {
 			tModel.SetDelta(localCounter + valueMet)
 			err = storage.LocalNewMemStorageCounter.SetCounter(nameMet, tModel.GetDelta())
 			if err != nil {
-				log.Println(err.Error())
+				log.Error(err.Error())
 				return
 			}
 		}
-	} else {
+	default:
 		http.Error(w, "Неверный тип метрики! Допустимые значения: gauge, counter", http.StatusBadRequest)
 		return
 	}
@@ -65,7 +67,7 @@ func JSONMetHandler(w http.ResponseWriter, req *http.Request) {
 	tJSON, _ := json.Marshal(tModel)
 	_, err = w.Write(tJSON)
 	if err != nil {
-		log.Println(err.Error())
+		log.Error(err.Error())
 		http.Error(w, "Ошибка при записи ответа", http.StatusBadRequest)
 		return
 	}
@@ -81,7 +83,8 @@ func JSONGetMetHandler(w http.ResponseWriter, req *http.Request) {
 	}
 	typeMet := tModel.MType
 	nameMet := tModel.ID
-	if typeMet == "gauge" {
+	switch typeMet {
+	case "gauge":
 		localGauge, err := storage.LocalNewMemStorageGauge.GetGauge(nameMet)
 		if err != nil {
 			http.Error(w, "Название метрики не найдено", http.StatusNotFound)
@@ -97,8 +100,7 @@ func JSONGetMetHandler(w http.ResponseWriter, req *http.Request) {
 		if errWrite != nil {
 			return
 		}
-	} else if typeMet == "counter" {
-
+	case "counter":
 		localCounter, err := storage.LocalNewMemStorageCounter.GetCounter(nameMet)
 		if err != nil {
 			http.Error(w, "Название метрики не найдено", http.StatusNotFound)
@@ -114,8 +116,7 @@ func JSONGetMetHandler(w http.ResponseWriter, req *http.Request) {
 		if errWrite != nil {
 			return
 		}
-
-	} else {
+	default:
 		http.Error(w, "Неверный тип метрики! Допустимые значения: gauge, counter", http.StatusBadRequest)
 		return
 	}

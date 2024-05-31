@@ -2,17 +2,19 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
+	"github.com/andrey67895/new_test_go_y_practicum/internal/logger"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/router"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
 )
+
+var log = logger.Log()
 
 func main() {
 	config.InitServerConfig()
@@ -28,12 +30,12 @@ func main() {
 func RestoringDataFromFile(fname string) {
 	data, err := os.ReadFile(fname)
 	if err != nil {
-		log.Println(err.Error())
+		log.Error(err.Error())
 		return
 	}
 	var tModel []model.JSONMetrics
 	if err := json.Unmarshal(data, &tModel); err != nil {
-		log.Println(err.Error())
+		log.Error(err.Error())
 	}
 	for i := 0; i < len(tModel); i++ {
 		metric := tModel[i]
@@ -50,7 +52,7 @@ func SaveData(tModel model.JSONMetrics) {
 		valueMet := tModel.GetValue()
 		err := storage.LocalNewMemStorageGauge.SetGauge(nameMet, valueMet)
 		if err != nil {
-			log.Println(err.Error())
+			log.Error(err.Error())
 			return
 		}
 	case "counter":
@@ -59,13 +61,13 @@ func SaveData(tModel model.JSONMetrics) {
 		if err != nil {
 			err := storage.LocalNewMemStorageCounter.SetCounter(nameMet, valueMet)
 			if err != nil {
-				log.Println(err.Error())
+				log.Error(err.Error())
 				return
 			} else {
 				tModel.SetDelta(localCounter + valueMet)
 				err = storage.LocalNewMemStorageCounter.SetCounter(nameMet, tModel.GetDelta())
 				if err != nil {
-					log.Println(err.Error())
+					log.Error(err.Error())
 					return
 				}
 			}
@@ -81,13 +83,13 @@ func SaveDataForInterval(fname string, storeInterval int) {
 			select {
 			case t := <-ticker.C:
 				SaveDataInFile(fname)
-				log.Println("Save Data file at: ", t)
+				log.Error("Save Data file at: ", t)
 			}
 		}
 	} else {
 		for {
 			SaveDataInFile(fname)
-			log.Println("Save Data file at: ", time.Now())
+			log.Error("Save Data file at: ", time.Now())
 		}
 	}
 
@@ -111,24 +113,24 @@ func SaveDataInFile(fname string) {
 	}
 	data, err := json.MarshalIndent(tModel, "", "   ")
 	if err != nil {
-		log.Println(err.Error())
+		log.Error(err.Error())
 		return
 	}
 
 	err = os.MkdirAll(filepath.Dir(fname), 0666)
 	if err != nil {
-		log.Println(err.Error())
+		log.Error(err.Error())
 		return
 	}
 	_, err = os.OpenFile(fname, os.O_WRONLY|os.O_CREATE, 0666)
 
 	if err != nil {
-		log.Println(err.Error())
+		log.Error(err.Error())
 		return
 	}
 	err = os.WriteFile(fname, data, 0666)
 	if err != nil {
-		log.Println(err.Error())
+		log.Error(err.Error())
 		return
 	}
 }

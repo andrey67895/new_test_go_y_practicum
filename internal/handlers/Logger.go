@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"go.uber.org/zap"
+	"github.com/andrey67895/new_test_go_y_practicum/internal/logger"
 )
 
 type (
@@ -31,13 +31,7 @@ func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 }
 
 func WithLogging(h http.Handler) http.Handler {
-	logger, err := zap.NewDevelopment()
-	if err != nil {
-		panic(err)
-	}
-	defer logger.Sync()
-
-	sugar := *logger.Sugar()
+	log := logger.Log()
 	logFn := func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now().Local()
 
@@ -52,7 +46,7 @@ func WithLogging(h http.Handler) http.Handler {
 		h.ServeHTTP(&lw, r)
 
 		duration := time.Since(start).Milliseconds()
-		sugar.Infoln(
+		log.Infoln(
 			"Uri: ", r.RequestURI,
 			"Method: ", r.Method,
 			"Status: ", responseData.status,

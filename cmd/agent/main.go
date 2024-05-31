@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"log"
 	"math/rand"
 	"net/http"
 	"runtime"
@@ -11,9 +10,11 @@ import (
 
 	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/helpers"
+	"github.com/andrey67895/new_test_go_y_practicum/internal/logger"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
 )
 
+var log = logger.Log()
 var metricsName = []string{"Alloc", "BuckHashSys", "Frees", "GCCPUFraction", "GCSys", "HeapAlloc",
 	"HeapIdle", "HeapInuse", "HeapObjects", "HeapReleased", "HeapSys", "LastGC",
 	"Lookups", "MCacheInuse", "MCacheSys", "MSpanInuse", "MSpanSys", "Mallocs",
@@ -29,7 +30,7 @@ func updateMetrics(pollInterval time.Duration) {
 		for _, statName := range metricsName {
 			err := metrics.SetDataMetrics(statName, model.NewGauge(statName, getMemByStats(statName)))
 			if err != nil {
-				log.Println(err.Error())
+				log.Error(err.Error())
 			}
 		}
 		count.UpdateCountPlusOne()
@@ -43,10 +44,8 @@ func sendMetrics(pollInterval time.Duration, host string) {
 
 		for k, v := range metrics.GetDataMetrics() {
 			sendRequestJSONFloat(host, "gauge", k, v.GetMetrics())
-			//sendRequest(host, "gauge", k, strconv.FormatFloat(v.GetMetrics(), 'f', -1, 64))
 		}
 		sendRequestJSONInt(host, "counter", count.GetName(), count.GetMetrics())
-		//sendRequest(host, "counter", count.GetName(), strconv.Itoa(int(count.GetMetrics())))
 		count.ClearCount()
 
 	}
@@ -65,11 +64,11 @@ func sendRequestJSONFloat(host string, typeMetr string, nameMetr string, metrics
 	r.Header.Add("Content-Type", "application/json")
 	body, err := client.Do(r)
 	if err != nil {
-		log.Println(err.Error())
+		log.Error(err.Error())
 	} else {
 		errClose := body.Body.Close()
 		if errClose != nil {
-			log.Println(errClose.Error())
+			log.Error(errClose.Error())
 		}
 	}
 }
@@ -87,11 +86,11 @@ func sendRequestJSONInt(host string, typeMetr string, nameMetr string, metrics i
 	r.Header.Add("Content-Type", "application/json")
 	body, err := client.Do(r)
 	if err != nil {
-		log.Println(err.Error())
+		log.Error(err.Error())
 	} else {
 		errClose := body.Body.Close()
 		if errClose != nil {
-			log.Println(errClose.Error())
+			log.Error(errClose.Error())
 		}
 	}
 }
