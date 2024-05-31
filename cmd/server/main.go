@@ -81,13 +81,13 @@ func SaveDataForInterval(fname string, storeInterval int) {
 		ticker := time.NewTicker(time.Duration(storeInterval) * time.Second)
 		for range ticker.C {
 			SaveDataInFile(fname)
-			log.Error("Save Data file at: ", time.Now())
+			log.Infoln("Save Data file at: ", time.Now())
 		}
 
 	} else {
 		for {
 			SaveDataInFile(fname)
-			log.Error("Save Data file at: ", time.Now())
+			log.Infoln("Save Data file at: ", time.Now())
 		}
 	}
 
