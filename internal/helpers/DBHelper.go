@@ -45,6 +45,8 @@ func InitTable() {
 }
 
 func SaveGaugeInDB(id string, delta float64) {
+	log.Printf("ID %s\n", id)
+	log.Printf("DELTA %f\n", delta)
 	ctx := context.Background()
 	_, err := DB.ExecContext(ctx, `INSERT INTO metrics(id, type, delta) values ($1,'GAUGE',$2) on conflict (id) do update set delta = $2`, id, delta)
 	if err != nil {
@@ -53,6 +55,8 @@ func SaveGaugeInDB(id string, delta float64) {
 }
 
 func SaveCounterInDB(id string, value int64) {
+	log.Printf("ID %s\n", id)
+	log.Printf("VALUE %d\n", value)
 	ctx := context.Background()
 	_, err := DB.ExecContext(ctx, `INSERT INTO metrics(id, type, value) values ($1,'COUNTER',$2) on conflict (id) do update set value = $2`, id, value)
 	if err != nil {
