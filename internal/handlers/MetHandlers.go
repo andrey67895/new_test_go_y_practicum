@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
+	"github.com/andrey67895/new_test_go_y_practicum/internal/helpers"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
 	"github.com/go-chi/chi/v5"
 )
@@ -80,6 +82,9 @@ func MetHandler(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, "Неверный значение метрики! Допустимые числовые значения!", http.StatusBadRequest)
 			return
 		}
+		if config.DatabaseDsn != "" {
+			helpers.SaveGaugeInDB(nameMet, valueMet)
+		}
 		err = storage.LocalNewMemStorageGauge.SetGauge(nameMet, valueMet)
 		if err != nil {
 			return
@@ -93,11 +98,17 @@ func MetHandler(w http.ResponseWriter, req *http.Request) {
 		}
 		localCounter, err := storage.LocalNewMemStorageCounter.GetCounter(nameMet)
 		if err != nil {
+			if config.DatabaseDsn != "" {
+				helpers.SaveCounterInDB(nameMet, int64(valueMet))
+			}
 			err := storage.LocalNewMemStorageCounter.SetCounter(nameMet, int64(valueMet))
 			if err != nil {
 				return
 			}
 		} else {
+			if config.DatabaseDsn != "" {
+				helpers.SaveCounterInDB(nameMet, int64(int(localCounter)+valueMet))
+			}
 			err = storage.LocalNewMemStorageCounter.SetCounter(nameMet, int64(int(localCounter)+valueMet))
 			if err != nil {
 				return

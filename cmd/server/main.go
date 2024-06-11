@@ -27,6 +27,8 @@ func main() {
 	}
 	if config.DatabaseDsn != "" {
 		helpers.DB = helpers.InitDB()
+		helpers.InitTable()
+
 	}
 	log.Fatal(http.ListenAndServe(":"+config.PortServer, router.GetRoutersForServer()))
 }
@@ -54,6 +56,9 @@ func SaveData(tModel model.JSONMetrics) {
 	switch typeMet {
 	case "gauge":
 		valueMet := tModel.GetValue()
+		if config.DatabaseDsn != "" {
+			helpers.SaveGaugeInDB(nameMet, valueMet)
+		}
 		err := storage.LocalNewMemStorageGauge.SetGauge(nameMet, valueMet)
 		if err != nil {
 			log.Error(err.Error())
@@ -63,12 +68,18 @@ func SaveData(tModel model.JSONMetrics) {
 		valueMet := tModel.GetDelta()
 		localCounter, err := storage.LocalNewMemStorageCounter.GetCounter(nameMet)
 		if err != nil {
+			if config.DatabaseDsn != "" {
+				helpers.SaveCounterInDB(nameMet, valueMet)
+			}
 			err := storage.LocalNewMemStorageCounter.SetCounter(nameMet, valueMet)
 			if err != nil {
 				log.Error(err.Error())
 				return
 			} else {
 				tModel.SetDelta(localCounter + valueMet)
+				if config.DatabaseDsn != "" {
+					helpers.SaveCounterInDB(nameMet, tModel.GetDelta())
+				}
 				err = storage.LocalNewMemStorageCounter.SetCounter(nameMet, tModel.GetDelta())
 				if err != nil {
 					log.Error(err.Error())
