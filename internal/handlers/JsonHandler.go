@@ -40,7 +40,7 @@ func JSONMetHandler(w http.ResponseWriter, req *http.Request) {
 	case "gauge":
 		valueMet := tModel.GetValue()
 		if config.DatabaseDsn != "" {
-			helpers.SaveGaugeInDB(nameMet, valueMet)
+			helpers.RetrySaveGaugeInDB(nameMet, valueMet)
 		}
 		err = storage.LocalNewMemStorageGauge.SetGauge(nameMet, valueMet)
 		if err != nil {
@@ -52,7 +52,7 @@ func JSONMetHandler(w http.ResponseWriter, req *http.Request) {
 		localCounter, err := storage.LocalNewMemStorageCounter.GetCounter(nameMet)
 		if err != nil {
 			if config.DatabaseDsn != "" {
-				helpers.SaveCounterInDB(nameMet, valueMet)
+				helpers.RetrySaveCounterInDB(nameMet, valueMet)
 			}
 			err := storage.LocalNewMemStorageCounter.SetCounter(nameMet, valueMet)
 			if err != nil {
@@ -62,7 +62,7 @@ func JSONMetHandler(w http.ResponseWriter, req *http.Request) {
 		} else {
 			tModel.SetDelta(localCounter + valueMet)
 			if config.DatabaseDsn != "" {
-				helpers.SaveCounterInDB(nameMet, tModel.GetDelta())
+				helpers.RetrySaveCounterInDB(nameMet, tModel.GetDelta())
 			}
 			err = storage.LocalNewMemStorageCounter.SetCounter(nameMet, tModel.GetDelta())
 			if err != nil {
@@ -111,7 +111,7 @@ func JSONMetHandlerUpdates(w http.ResponseWriter, req *http.Request) {
 		case "gauge":
 			valueMet := tModel.GetValue()
 			if config.DatabaseDsn != "" {
-				helpers.SaveGaugeInDB(nameMet, valueMet)
+				helpers.RetrySaveGaugeInDB(nameMet, valueMet)
 			}
 			err = storage.LocalNewMemStorageGauge.SetGauge(nameMet, valueMet)
 			if err != nil {
@@ -123,7 +123,7 @@ func JSONMetHandlerUpdates(w http.ResponseWriter, req *http.Request) {
 			localCounter, err := storage.LocalNewMemStorageCounter.GetCounter(nameMet)
 			if err != nil {
 				if config.DatabaseDsn != "" {
-					helpers.SaveCounterInDB(nameMet, valueMet)
+					helpers.RetrySaveCounterInDB(nameMet, valueMet)
 				}
 				err := storage.LocalNewMemStorageCounter.SetCounter(nameMet, valueMet)
 				if err != nil {
@@ -133,7 +133,7 @@ func JSONMetHandlerUpdates(w http.ResponseWriter, req *http.Request) {
 			} else {
 				tModel.SetDelta(localCounter + valueMet)
 				if config.DatabaseDsn != "" {
-					helpers.SaveCounterInDB(nameMet, tModel.GetDelta())
+					helpers.RetrySaveCounterInDB(nameMet, tModel.GetDelta())
 				}
 				err = storage.LocalNewMemStorageCounter.SetCounter(nameMet, tModel.GetDelta())
 				if err != nil {

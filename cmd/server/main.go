@@ -57,7 +57,7 @@ func SaveData(tModel model.JSONMetrics) {
 	case "gauge":
 		valueMet := tModel.GetValue()
 		if config.DatabaseDsn != "" {
-			helpers.SaveGaugeInDB(nameMet, valueMet)
+			helpers.RetrySaveGaugeInDB(nameMet, valueMet)
 		}
 		err := storage.LocalNewMemStorageGauge.SetGauge(nameMet, valueMet)
 		if err != nil {
@@ -69,7 +69,7 @@ func SaveData(tModel model.JSONMetrics) {
 		localCounter, err := storage.LocalNewMemStorageCounter.GetCounter(nameMet)
 		if err != nil {
 			if config.DatabaseDsn != "" {
-				helpers.SaveCounterInDB(nameMet, valueMet)
+				helpers.RetrySaveCounterInDB(nameMet, valueMet)
 			}
 			err := storage.LocalNewMemStorageCounter.SetCounter(nameMet, valueMet)
 			if err != nil {
@@ -78,7 +78,7 @@ func SaveData(tModel model.JSONMetrics) {
 			} else {
 				tModel.SetDelta(localCounter + valueMet)
 				if config.DatabaseDsn != "" {
-					helpers.SaveCounterInDB(nameMet, tModel.GetDelta())
+					helpers.RetrySaveCounterInDB(nameMet, tModel.GetDelta())
 				}
 				err = storage.LocalNewMemStorageCounter.SetCounter(nameMet, tModel.GetDelta())
 				if err != nil {

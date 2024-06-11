@@ -83,7 +83,7 @@ func MetHandler(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 		if config.DatabaseDsn != "" {
-			helpers.SaveGaugeInDB(nameMet, valueMet)
+			helpers.RetrySaveGaugeInDB(nameMet, valueMet)
 		}
 		err = storage.LocalNewMemStorageGauge.SetGauge(nameMet, valueMet)
 		if err != nil {
@@ -99,7 +99,7 @@ func MetHandler(w http.ResponseWriter, req *http.Request) {
 		localCounter, err := storage.LocalNewMemStorageCounter.GetCounter(nameMet)
 		if err != nil {
 			if config.DatabaseDsn != "" {
-				helpers.SaveCounterInDB(nameMet, int64(valueMet))
+				helpers.RetrySaveCounterInDB(nameMet, int64(valueMet))
 			}
 			err := storage.LocalNewMemStorageCounter.SetCounter(nameMet, int64(valueMet))
 			if err != nil {
@@ -107,7 +107,7 @@ func MetHandler(w http.ResponseWriter, req *http.Request) {
 			}
 		} else {
 			if config.DatabaseDsn != "" {
-				helpers.SaveCounterInDB(nameMet, int64(int(localCounter)+valueMet))
+				helpers.RetrySaveCounterInDB(nameMet, int64(int(localCounter)+valueMet))
 			}
 			err = storage.LocalNewMemStorageCounter.SetCounter(nameMet, int64(int(localCounter)+valueMet))
 			if err != nil {
