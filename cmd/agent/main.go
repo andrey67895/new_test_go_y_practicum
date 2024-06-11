@@ -42,12 +42,44 @@ func sendMetrics(pollInterval time.Duration, host string) {
 	for {
 		time.Sleep(pollInterval * time.Second)
 
+		var tJSON []model.JSONMetrics
 		for k, v := range metrics.GetDataMetrics() {
-			sendRequestJSONFloat(host, "gauge", k, v.GetMetrics())
+			gauge := v.GetMetrics()
+			tJSON = append(tJSON, model.JSONMetrics{
+				ID:    k,
+				MType: "gauge",
+				Value: &gauge,
+			})
+			//sendRequestJSONFloat(host, "gauge", k, v.GetMetrics())
 		}
+		sendRequestJSONFloatAll(host, tJSON)
+		//tJSON.ID = nameMetr
+		//tJSON.MType = typeMetr
+		//tJSON.SetValue(metrics)
+		//for k, v := range metrics.GetDataMetrics() {
+		//	sendRequestJSONFloat(host, "gauge", k, v.GetMetrics())
+		//}
 		sendRequestJSONInt(host, "counter", count.GetName(), count.GetMetrics())
 		count.ClearCount()
 
+	}
+}
+
+func sendRequestJSONFloatAll(host string, tJSON []model.JSONMetrics) {
+	url := "http://" + host + "/updates/"
+	tModel, _ := json.Marshal(tJSON)
+	client := &http.Client{}
+	r, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(helpers.Compress(tModel)))
+	r.Header.Add("Content-Encoding", "gzip")
+	r.Header.Add("Content-Type", "application/json")
+	body, err := client.Do(r)
+	if err != nil {
+		log.Error(err.Error())
+	} else {
+		errClose := body.Body.Close()
+		if errClose != nil {
+			log.Error(errClose.Error())
+		}
 	}
 }
 
