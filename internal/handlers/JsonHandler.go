@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
+	"github.com/andrey67895/new_test_go_y_practicum/internal/helpers"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/logger"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
@@ -37,6 +39,9 @@ func JSONMetHandler(w http.ResponseWriter, req *http.Request) {
 	switch typeMet {
 	case "gauge":
 		valueMet := tModel.GetValue()
+		if config.DatabaseDsn != "" {
+			helpers.SaveGaugeInDB(nameMet, valueMet)
+		}
 		err = storage.LocalNewMemStorageGauge.SetGauge(nameMet, valueMet)
 		if err != nil {
 			log.Error(err.Error())
@@ -46,6 +51,9 @@ func JSONMetHandler(w http.ResponseWriter, req *http.Request) {
 		valueMet := tModel.GetDelta()
 		localCounter, err := storage.LocalNewMemStorageCounter.GetCounter(nameMet)
 		if err != nil {
+			if config.DatabaseDsn != "" {
+				helpers.SaveCounterInDB(nameMet, valueMet)
+			}
 			err := storage.LocalNewMemStorageCounter.SetCounter(nameMet, valueMet)
 			if err != nil {
 				log.Error(err.Error())
@@ -53,6 +61,9 @@ func JSONMetHandler(w http.ResponseWriter, req *http.Request) {
 			}
 		} else {
 			tModel.SetDelta(localCounter + valueMet)
+			if config.DatabaseDsn != "" {
+				helpers.SaveCounterInDB(nameMet, tModel.GetDelta())
+			}
 			err = storage.LocalNewMemStorageCounter.SetCounter(nameMet, tModel.GetDelta())
 			if err != nil {
 				log.Error(err.Error())
