@@ -1,17 +1,20 @@
 package main
 
 import (
-	"flag"
-	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
-	"log"
+	"bytes"
+	"encoding/json"
 	"math/rand"
 	"net/http"
-	"os"
 	"runtime"
-	"strconv"
 	"time"
+
+	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
+	"github.com/andrey67895/new_test_go_y_practicum/internal/helpers"
+	"github.com/andrey67895/new_test_go_y_practicum/internal/logger"
+	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
 )
 
+var log = logger.Log()
 var metricsName = []string{"Alloc", "BuckHashSys", "Frees", "GCCPUFraction", "GCSys", "HeapAlloc",
 	"HeapIdle", "HeapInuse", "HeapObjects", "HeapReleased", "HeapSys", "LastGC",
 	"Lookups", "MCacheInuse", "MCacheSys", "MSpanInuse", "MSpanSys", "Mallocs",
@@ -27,7 +30,7 @@ func updateMetrics(pollInterval time.Duration) {
 		for _, statName := range metricsName {
 			err := metrics.SetDataMetrics(statName, model.NewGauge(statName, getMemByStats(statName)))
 			if err != nil {
-				println(err.Error())
+				log.Error(err.Error())
 			}
 		}
 		count.UpdateCountPlusOne()
@@ -40,58 +43,64 @@ func sendMetrics(pollInterval time.Duration, host string) {
 		time.Sleep(pollInterval * time.Second)
 
 		for k, v := range metrics.GetDataMetrics() {
-			sendRequest(host, "gauge", k, strconv.FormatFloat(v.GetMetrics(), 'f', -1, 64))
+			sendRequestJSONFloat(host, "gauge", k, v.GetMetrics())
 		}
-
-		sendRequest(host, "counter", count.GetName(), strconv.Itoa(int(count.GetMetrics())))
+		sendRequestJSONInt(host, "counter", count.GetName(), count.GetMetrics())
 		count.ClearCount()
 
 	}
 }
 
-func sendRequest(host string, typeMetr string, nameMetr string, metrics string) {
-	url := "http://" + host + "/update/" + typeMetr + "/" + nameMetr + "/" + metrics
-	body, err := http.Post(url, "text/plain", nil)
+func sendRequestJSONFloat(host string, typeMetr string, nameMetr string, metrics float64) {
+	url := "http://" + host + "/update/"
+	tJSON := model.JSONMetrics{}
+	tJSON.ID = nameMetr
+	tJSON.MType = typeMetr
+	tJSON.SetValue(metrics)
+	tModel, _ := json.Marshal(tJSON)
+	client := &http.Client{}
+	r, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(helpers.Compress(tModel)))
+	r.Header.Add("Content-Encoding", "gzip")
+	r.Header.Add("Content-Type", "application/json")
+	body, err := client.Do(r)
 	if err != nil {
-		println(err.Error())
+		log.Error(err.Error())
 	} else {
 		errClose := body.Body.Close()
 		if errClose != nil {
-			println(errClose.Error())
+			log.Error(errClose.Error())
 		}
 	}
 }
 
-var host string
-var reportInterval int
-var pollInterval int
-
-func main() {
-	flag.StringVar(&host, "a", "localhost:8080", "host for server")
-	flag.IntVar(&reportInterval, "r", 10, "reportInterval for send metrics to server")
-	flag.IntVar(&pollInterval, "p", 2, "pollInterval for update metrics")
-	flag.Parse()
-	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
-		host = envRunAddr
+func sendRequestJSONInt(host string, typeMetr string, nameMetr string, metrics int64) {
+	url := "http://" + host + "/update/"
+	tJSON := model.JSONMetrics{}
+	tJSON.ID = nameMetr
+	tJSON.MType = typeMetr
+	tJSON.SetDelta(metrics)
+	tModel, _ := json.Marshal(tJSON)
+	client := &http.Client{}
+	r, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(helpers.Compress(tModel)))
+	r.Header.Add("Content-Encoding", "gzip")
+	r.Header.Add("Content-Type", "application/json")
+	body, err := client.Do(r)
+	if err != nil {
+		log.Error(err.Error())
+	} else {
+		errClose := body.Body.Close()
+		if errClose != nil {
+			log.Error(errClose.Error())
+		}
 	}
-	if envReportInterval := os.Getenv("REPORT_INTERVAL"); envReportInterval != "" {
-		reportInterval = getValueInEnv(envReportInterval)
-	}
-	if envPollInterval := os.Getenv("POLL_INTERVAL"); envPollInterval != "" {
-		pollInterval = getValueInEnv(envPollInterval)
-	}
-	go updateMetrics(time.Duration(pollInterval))
-	go sendMetrics(time.Duration(reportInterval), host)
-	server := http.Server{}
-	log.Fatal(server.ListenAndServe())
 }
 
-func getValueInEnv(env string) int {
-	envInt, err := strconv.Atoi(env)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return envInt
+func main() {
+	config.InitAgentConfig()
+	go updateMetrics(time.Duration(config.PollIntervalAgent))
+	go sendMetrics(time.Duration(config.ReportIntervalAgent), config.HostAgent)
+	server := http.Server{}
+	log.Fatal(server.ListenAndServe())
 }
 
 func getMemByStats(name string) float64 {

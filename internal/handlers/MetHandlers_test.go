@@ -2,12 +2,13 @@ package handlers
 
 import (
 	"context"
-	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
-	"github.com/go-chi/chi/v5"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
+	"github.com/go-chi/chi/v5"
+	"github.com/stretchr/testify/assert"
 )
 
 func AddChiURLParams(r *http.Request, params map[string]string) *http.Request {

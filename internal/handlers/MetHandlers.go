@@ -2,13 +2,17 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
-	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
+	"strings"
+
+	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
+	"github.com/go-chi/chi/v5"
 )
 
 func GetAll(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	w.WriteHeader(http.StatusOK)
 	for k, v := range storage.LocalNewMemStorageGauge.GetData() {
 		_, err := w.Write([]byte("Name: " + k + ". Value: " + fmt.Sprint(v) + "\n"))
 		if err != nil {
@@ -21,7 +25,6 @@ func GetAll(w http.ResponseWriter, _ *http.Request) {
 			return
 		}
 	}
-	w.WriteHeader(http.StatusOK)
 }
 
 func GetMetHandler(w http.ResponseWriter, req *http.Request) {
@@ -57,6 +60,17 @@ func GetMetHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func MetHandler(w http.ResponseWriter, req *http.Request) {
+	contentEncoding := req.Header.Get("Content-Encoding")
+	sendsGzip := strings.Contains(contentEncoding, "gzip")
+	if sendsGzip {
+		cr, err := newCompressReader(req.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		req.Body = cr.r
+		defer cr.zr.Close()
+	}
 	typeMet := chi.URLParam(req, "type")
 	nameMet := chi.URLParam(req, "name")
 
