@@ -12,6 +12,7 @@ func GetRoutersForServer() *chi.Mux {
 	r.Use(middleware.RealIP, handlers.WithLogging, middleware.Recoverer, handlers.GzipHandleResponse)
 	r.Post("/update/{type}/{name}/{value}", handlers.MetHandler)
 	r.Post("/update/", handlers.JSONMetHandler)
+	r.Post("/updates/", handlers.JSONMetHandlerUpdates)
 	r.Post("/value/", handlers.JSONGetMetHandler)
 	r.Get("/value/{type}/{name}", handlers.GetMetHandler)
 	r.Get("/ping", helpers.GetPing)
