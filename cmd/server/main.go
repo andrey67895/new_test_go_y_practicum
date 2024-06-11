@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
+	"github.com/andrey67895/new_test_go_y_practicum/internal/helpers"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/logger"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/router"
@@ -23,6 +24,9 @@ func main() {
 			RestoringDataFromFile(config.FileStoragePathServer)
 		}
 		go SaveDataForInterval(config.FileStoragePathServer, config.StoreIntervalServer)
+	}
+	if config.DatabaseDsn != "" {
+		helpers.DB = helpers.InitDB()
 	}
 	log.Fatal(http.ListenAndServe(":"+config.PortServer, router.GetRoutersForServer()))
 }
