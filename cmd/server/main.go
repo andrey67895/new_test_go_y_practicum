@@ -19,16 +19,16 @@ var log = logger.Log()
 
 func main() {
 	config.InitServerConfig()
+	if config.DatabaseDsn != "" {
+		helpers.DB = helpers.InitDB()
+		helpers.InitTable()
+
+	}
 	if config.FileStoragePathServer != "" {
 		if config.RestoreServer {
 			RestoringDataFromFile(config.FileStoragePathServer)
 		}
 		go SaveDataForInterval(config.FileStoragePathServer, config.StoreIntervalServer)
-	}
-	if config.DatabaseDsn != "" {
-		helpers.DB = helpers.InitDB()
-		helpers.InitTable()
-
 	}
 	log.Fatal(http.ListenAndServe(":"+config.PortServer, router.GetRoutersForServer()))
 }
