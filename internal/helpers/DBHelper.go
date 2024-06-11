@@ -12,7 +12,6 @@ import (
 	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/logger"
 	"github.com/jackc/pgerrcode"
-	_ "github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
