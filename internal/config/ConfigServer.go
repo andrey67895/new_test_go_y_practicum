@@ -18,7 +18,6 @@ var DatabaseDsn string
 func InitServerConfig() {
 
 	flag.StringVar(&HostServer, "a", "localhost:8080", "HostServer for server")
-	flag.Parse()
 	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
 		HostServer = envRunAddr
 	}
