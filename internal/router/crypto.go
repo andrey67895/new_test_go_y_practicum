@@ -20,6 +20,7 @@ func WithCrypto(h http.Handler) http.Handler {
 			dst := h.Sum(nil)
 			w.Header().Add("HashSHA256", string(dst))
 		}
+		h.ServeHTTP(w, r)
 
 	}
 

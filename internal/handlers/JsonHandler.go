@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"crypto/sha256"
 	"encoding/json"
+	"io"
 	"net/http"
 	"strings"
 
@@ -96,6 +98,7 @@ func JSONMetHandlerUpdates(w http.ResponseWriter, req *http.Request) {
 		req.Body = cr.zr
 		defer cr.zr.Close()
 	}
+
 	w.Header().Set("Content-Type", "application/json")
 	var tModels []model.JSONMetrics
 	err := json.NewDecoder(req.Body).Decode(&tModels)
@@ -103,6 +106,13 @@ func JSONMetHandlerUpdates(w http.ResponseWriter, req *http.Request) {
 		log.Error(err.Error())
 		http.Error(w, "Ошибка десериализации!", http.StatusBadRequest)
 		return
+	}
+	if config.HashKeyServer != "" {
+		h := sha256.New()
+		all, _ := io.ReadAll(req.Body)
+		h.Write(all)
+		dst := h.Sum(nil)
+		w.Header().Add("HashSHA256", string(dst))
 	}
 	for _, tModel := range tModels {
 		typeMet := tModel.MType
