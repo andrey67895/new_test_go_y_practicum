@@ -9,7 +9,7 @@ import (
 
 func GetRoutersForServer() *chi.Mux {
 	r := chi.NewRouter()
-	r.Use(middleware.RealIP, handlers.WithLogging, WithCrypto, middleware.Recoverer, handlers.GzipHandleResponse)
+	r.Use(middleware.RealIP, handlers.WithLogging, middleware.Recoverer, handlers.GzipHandleResponse, WithCrypto)
 	r.Post("/update/{type}/{name}/{value}", handlers.MetHandler)
 	r.Post("/update/", handlers.JSONMetHandler)
 	r.Post("/updates/", handlers.JSONMetHandlerUpdates)
