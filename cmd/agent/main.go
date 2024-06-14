@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/json"
 	"math/rand"
 	"net/http"
@@ -65,6 +66,14 @@ func sendRequestJSONFloatAll(host string, tJSON []model.JSONMetrics) error {
 	r, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(helpers.Compress(tModel)))
 	r.Header.Add("Content-Encoding", "gzip")
 	r.Header.Add("Content-Type", "application/json")
+	if config.HashKeyAgent != "" {
+		h := sha256.New()
+		// передаём байты для хеширования
+		h.Write(helpers.Compress(tModel))
+		// вычисляем хеш
+		dst := h.Sum(nil)
+		r.Header.Add("HashSHA256", string(dst))
+	}
 	body, err := client.Do(r)
 	if err != nil {
 		log.Error(err.Error())
@@ -120,6 +129,12 @@ func sendRequestJSONInt(host string, typeMetr string, nameMetr string, metrics i
 	r, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(helpers.Compress(tModel)))
 	r.Header.Add("Content-Encoding", "gzip")
 	r.Header.Add("Content-Type", "application/json")
+	if config.HashKeyAgent != "" {
+		h := sha256.New()
+		h.Write(helpers.Compress(tModel))
+		dst := h.Sum(nil)
+		r.Header.Add("HashSHA256", string(dst))
+	}
 	body, err := client.Do(r)
 	if err != nil {
 		log.Error(err.Error())
