@@ -10,11 +10,13 @@ import (
 var HostAgent string
 var ReportIntervalAgent int
 var PollIntervalAgent int
+var HashKeyAgent string
 
 func InitAgentConfig() {
 	flag.StringVar(&HostAgent, "a", "localhost:8080", "HostServer for server")
 	flag.IntVar(&ReportIntervalAgent, "r", 10, "reportInterval for send metrics to server")
 	flag.IntVar(&PollIntervalAgent, "p", 2, "pollInterval for update metrics")
+	flag.StringVar(&HashKeyAgent, "k", "", "Key for hash")
 	flag.Parse()
 	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
 		HostAgent = envRunAddr
@@ -24,6 +26,9 @@ func InitAgentConfig() {
 	}
 	if envPollInterval := os.Getenv("POLL_INTERVAL"); envPollInterval != "" {
 		PollIntervalAgent = getValueInEnv(envPollInterval)
+	}
+	if envHashKey := os.Getenv("KEY"); envHashKey != "" {
+		HashKeyAgent = envHashKey
 	}
 }
 
