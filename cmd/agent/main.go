@@ -30,10 +30,14 @@ var metrics = model.NewMetrics()
 func updateMetrics(pollInterval time.Duration) {
 	for {
 		for _, statName := range metricsName {
-			err := metrics.SetDataMetrics(statName, model.NewGauge(statName, getMemByStats(statName)))
-			if err != nil {
-				log.Error(err.Error())
-			}
+			statName := statName
+			go func() {
+				err := metrics.SetDataMetrics(statName, model.NewGauge(statName, getMemByStats(statName)))
+				if err != nil {
+					log.Error(err.Error())
+				}
+			}()
+
 		}
 		count.UpdateCountPlusOne()
 		time.Sleep(pollInterval * time.Second)
