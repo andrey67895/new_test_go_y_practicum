@@ -132,7 +132,7 @@ func sendRequestJSONInt(host string, typeMetr string, nameMetr string, metrics i
 		h := sha256.New()
 		h.Write(helpers.Compress(tModel))
 		dst := h.Sum(nil)
-		r.Header.Add("HashSHA256", string(dst))
+		r.Header.Add("HashSHA256", fmt.Sprintf("%x", dst))
 	}
 	body, err := client.Do(r)
 	if err != nil {
