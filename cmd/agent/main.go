@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"runtime"
@@ -68,11 +69,9 @@ func sendRequestJSONFloatAll(host string, tJSON []model.JSONMetrics) error {
 	r.Header.Add("Content-Type", "application/json")
 	if config.HashKeyAgent != "" {
 		h := sha256.New()
-		// передаём байты для хеширования
 		h.Write(helpers.Compress(tModel))
-		// вычисляем хеш
 		dst := h.Sum(nil)
-		r.Header.Add("HashSHA256", string(dst))
+		r.Header.Add("HashSHA256", fmt.Sprintf("%x", dst))
 	}
 	body, err := client.Do(r)
 	if err != nil {
