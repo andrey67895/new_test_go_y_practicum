@@ -75,7 +75,7 @@ func MetHandler(w http.ResponseWriter, req *http.Request) {
 	}
 	typeMet := chi.URLParam(req, "type")
 	nameMet := chi.URLParam(req, "name")
-
+	addHash(w, req)
 	if typeMet == "gauge" {
 		valueMet, err := strconv.ParseFloat(chi.URLParam(req, "value"), 64)
 		if err != nil {

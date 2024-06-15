@@ -3,6 +3,7 @@ package handlers
 import (
 	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -36,6 +37,7 @@ func JSONMetHandler(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Ошибка десериализации!", http.StatusBadRequest)
 		return
 	}
+	addHash(w, req)
 	typeMet := tModel.MType
 	nameMet := tModel.ID
 	switch typeMet {
@@ -86,6 +88,14 @@ func JSONMetHandler(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func addHash(w http.ResponseWriter, req *http.Request) {
+	if config.HashKeyServer != "" {
+		all, _ := io.ReadAll(req.Body)
+		h := sha256.Sum256(all)
+		w.Header().Add("HashSHA256", fmt.Sprintf("%x", h))
+	}
+}
+
 func JSONMetHandlerUpdates(w http.ResponseWriter, req *http.Request) {
 	contentEncoding := req.Header.Get("Content-Encoding")
 	sendsGzip := strings.Contains(contentEncoding, "gzip")
@@ -107,13 +117,7 @@ func JSONMetHandlerUpdates(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Ошибка десериализации!", http.StatusBadRequest)
 		return
 	}
-	if config.HashKeyServer != "" {
-		h := sha256.New()
-		all, _ := io.ReadAll(req.Body)
-		h.Write(all)
-		dst := h.Sum(nil)
-		w.Header().Add("HashSHA256", string(dst))
-	}
+	addHash(w, req)
 	for _, tModel := range tModels {
 		typeMet := tModel.MType
 		nameMet := tModel.ID
