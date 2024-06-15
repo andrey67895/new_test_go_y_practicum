@@ -2,7 +2,9 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"runtime"
@@ -28,10 +30,14 @@ var metrics = model.NewMetrics()
 func updateMetrics(pollInterval time.Duration) {
 	for {
 		for _, statName := range metricsName {
-			err := metrics.SetDataMetrics(statName, model.NewGauge(statName, getMemByStats(statName)))
-			if err != nil {
-				log.Error(err.Error())
-			}
+			statName := statName
+			go func() {
+				err := metrics.SetDataMetrics(statName, model.NewGauge(statName, getMemByStats(statName)))
+				if err != nil {
+					log.Error(err.Error())
+				}
+			}()
+
 		}
 		count.UpdateCountPlusOne()
 		time.Sleep(pollInterval * time.Second)
@@ -42,38 +48,80 @@ func sendMetrics(pollInterval time.Duration, host string) {
 	for {
 		time.Sleep(pollInterval * time.Second)
 
+		var tJSON []model.JSONMetrics
 		for k, v := range metrics.GetDataMetrics() {
-			sendRequestJSONFloat(host, "gauge", k, v.GetMetrics())
+			gauge := v.GetMetrics()
+			tJSON = append(tJSON, model.JSONMetrics{
+				ID:    k,
+				MType: "gauge",
+				Value: &gauge,
+			})
 		}
-		sendRequestJSONInt(host, "counter", count.GetName(), count.GetMetrics())
+		retrySendRequestJSONFloatAll(host, tJSON)
+		retrySendRequestJSONInt(host, "counter", count.GetName(), count.GetMetrics())
 		count.ClearCount()
 
 	}
 }
 
-func sendRequestJSONFloat(host string, typeMetr string, nameMetr string, metrics float64) {
-	url := "http://" + host + "/update/"
-	tJSON := model.JSONMetrics{}
-	tJSON.ID = nameMetr
-	tJSON.MType = typeMetr
-	tJSON.SetValue(metrics)
+func sendRequestJSONFloatAll(host string, tJSON []model.JSONMetrics) error {
+	url := "http://" + host + "/updates/"
 	tModel, _ := json.Marshal(tJSON)
 	client := &http.Client{}
 	r, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(helpers.Compress(tModel)))
 	r.Header.Add("Content-Encoding", "gzip")
 	r.Header.Add("Content-Type", "application/json")
+	if config.HashKeyAgent != "" {
+		h := sha256.New()
+		h.Write(helpers.Compress(tModel))
+		dst := h.Sum(nil)
+		r.Header.Add("HashSHA256", fmt.Sprintf("%x", dst))
+	}
 	body, err := client.Do(r)
 	if err != nil {
 		log.Error(err.Error())
+		return err
 	} else {
 		errClose := body.Body.Close()
 		if errClose != nil {
 			log.Error(errClose.Error())
+			return errClose
+		}
+	}
+	return err
+}
+
+func retrySendRequestJSONFloatAll(host string, tJSON []model.JSONMetrics) {
+	err := sendRequestJSONFloatAll(host, tJSON)
+	if err != nil {
+		for i := 1; i <= 5; i = i + 2 {
+			timer := time.NewTimer(time.Duration(i) * time.Second)
+			t := <-timer.C
+			log.Info(t.Local())
+			err = sendRequestJSONFloatAll(host, tJSON)
+			if err == nil {
+				break
+			}
 		}
 	}
 }
 
-func sendRequestJSONInt(host string, typeMetr string, nameMetr string, metrics int64) {
+func retrySendRequestJSONInt(host string, typeMetr string, nameMetr string, metrics int64) {
+	err := sendRequestJSONInt(host, typeMetr, nameMetr, metrics)
+	if err != nil {
+		for i := 1; i <= 5; i = i + 2 {
+			timer := time.NewTimer(time.Duration(i) * time.Second)
+			t := <-timer.C
+			log.Info(t.Local())
+			err := sendRequestJSONInt(host, typeMetr, nameMetr, metrics)
+			if err == nil {
+				break
+			}
+		}
+	}
+}
+
+func sendRequestJSONInt(host string, typeMetr string, nameMetr string, metrics int64) error {
 	url := "http://" + host + "/update/"
 	tJSON := model.JSONMetrics{}
 	tJSON.ID = nameMetr
@@ -84,15 +132,24 @@ func sendRequestJSONInt(host string, typeMetr string, nameMetr string, metrics i
 	r, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(helpers.Compress(tModel)))
 	r.Header.Add("Content-Encoding", "gzip")
 	r.Header.Add("Content-Type", "application/json")
+	if config.HashKeyAgent != "" {
+		h := sha256.New()
+		h.Write(helpers.Compress(tModel))
+		dst := h.Sum(nil)
+		r.Header.Add("HashSHA256", fmt.Sprintf("%x", dst))
+	}
 	body, err := client.Do(r)
 	if err != nil {
 		log.Error(err.Error())
+		return err
 	} else {
 		errClose := body.Body.Close()
 		if errClose != nil {
 			log.Error(errClose.Error())
+			return errClose
 		}
 	}
+	return err
 }
 
 func main() {
