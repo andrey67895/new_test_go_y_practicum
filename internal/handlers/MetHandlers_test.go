@@ -20,7 +20,7 @@ func AddChiURLParams(r *http.Request, params map[string]string) *http.Request {
 	return r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, ctx))
 }
 
-func TestMetHandler(t *testing.T) {
+func TestSaveDataForPathParams(t *testing.T) {
 	type want struct {
 		code        int
 		response    string
@@ -87,8 +87,8 @@ func TestMetHandler(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 
-			MetHandler(w, test.args.req)
-
+			handler := SaveDataForPathParams(storage.InMemStorage{})
+			handler(w, test.args.req)
 			res := w.Result()
 			assert.Equal(t, test.want.code, res.StatusCode)
 			assert.Equal(t, test.want.contentType, res.Header.Get("Content-Type"))
@@ -97,7 +97,7 @@ func TestMetHandler(t *testing.T) {
 	}
 }
 
-func TestCountValue(t *testing.T) {
+func TestCountValueCounter(t *testing.T) {
 	type want struct {
 		code        int
 		response    string
@@ -121,19 +121,19 @@ func TestCountValue(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := storage.LocalNewMemStorageCounter.SetCounter("Test", 100)
+			st := storage.InMemStorage{}
+			err := st.RetrySaveCounter("Test", 100)
 			assert.NoError(t, err)
 			w := httptest.NewRecorder()
 			req := AddChiURLParams(httptest.NewRequest("POST", "/update/counter/Test/100", nil), map[string]string{
 				"type": "counter", "name": "Test", "value": "100",
 			})
-
-			MetHandler(w, req)
-
+			handler := SaveDataForPathParams(st)
+			handler(w, req)
 			res := w.Result()
 			assert.Equal(t, test.want.code, res.StatusCode)
 			assert.Equal(t, test.want.contentType, res.Header.Get("Content-Type"))
-			value, err := storage.LocalNewMemStorageCounter.GetCounter("Test")
+			value, err := st.GetCounter("Test")
 			assert.NoError(t, err)
 			assert.Equal(t, 200, int(value))
 			_ = res.Body.Close()
