@@ -24,7 +24,7 @@ func GetPing(iStorage storage.IStorageData) http.HandlerFunc {
 	}
 }
 
-func SaveMetDataForJson(iStorage storage.IStorageData) http.HandlerFunc {
+func SaveMetDataForJSON(iStorage storage.IStorageData) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		contentEncoding := req.Header.Get("Content-Encoding")
 		sendsGzip := strings.Contains(contentEncoding, "gzip")
@@ -85,7 +85,7 @@ func SaveMetDataForJson(iStorage storage.IStorageData) http.HandlerFunc {
 	}
 }
 
-func SaveArraysMetDataForJson(iStorage storage.IStorageData) http.HandlerFunc {
+func SaveArraysMetDataForJSON(iStorage storage.IStorageData) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		contentEncoding := req.Header.Get("Content-Encoding")
 		sendsGzip := strings.Contains(contentEncoding, "gzip")
@@ -150,7 +150,7 @@ func SaveArraysMetDataForJson(iStorage storage.IStorageData) http.HandlerFunc {
 	}
 }
 
-func GetDataForJson(iStorage storage.IStorageData) http.HandlerFunc {
+func GetDataForJSON(iStorage storage.IStorageData) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		var tModel model.JSONMetrics
