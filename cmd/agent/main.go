@@ -53,10 +53,12 @@ func sendMetrics(pollInterval time.Duration, host string) {
 		}
 		err := retrySendRequestJSONFloatAll(host, tJSON)
 		if err != nil {
+			log.Error(err.Error())
 			continue
 		}
 		err = retrySendRequestJSONInt(host, "counter", count.GetName(), count.GetMetrics())
 		if err != nil {
+			log.Error(err.Error())
 			continue
 		}
 		count.ClearCount()
