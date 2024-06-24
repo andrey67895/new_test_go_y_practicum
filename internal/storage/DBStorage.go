@@ -144,7 +144,7 @@ func (db DBStorage) InitTable() {
         "id" text primary key,
         "type" text,
         "delta" double precision,
-        "value" integer
+        "value" bigint
       )`)
 	if err != nil {
 		log.Error(err.Error())
