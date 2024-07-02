@@ -16,7 +16,7 @@ func InitAgentConfig() {
 	flag.StringVar(&HostAgent, "a", "localhost:8080", "HostServer for server")
 	flag.IntVar(&ReportIntervalAgent, "r", 10, "reportInterval for send metrics to server")
 	flag.IntVar(&PollIntervalAgent, "p", 2, "pollInterval for update metrics")
-	flag.StringVar(&HashKeyAgent, "k", "", "Key for hash")
+	flag.StringVar(&HashKeyAgent, "k", "123", "Key for hash")
 	flag.Parse()
 	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
 		HostAgent = envRunAddr

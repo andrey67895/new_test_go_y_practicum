@@ -75,12 +75,7 @@ func sendRequestJSONFloatAll(host string, tJSON []model.JSONMetrics) error {
 	r, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(helpers.Compress(tModel)))
 	r.Header.Add("Content-Encoding", "gzip")
 	r.Header.Add("Content-Type", "application/json")
-	if config.HashKeyAgent != "" {
-		h := sha256.New()
-		h.Write(helpers.Compress(tModel))
-		dst := h.Sum(nil)
-		r.Header.Add("HashSHA256", fmt.Sprintf("%x", dst))
-	}
+	sendHashKey(r, tModel)
 	body, err := client.Do(r)
 	if err != nil {
 		log.Error(err.Error())
@@ -127,6 +122,15 @@ func retrySendRequestJSONInt(host string, typeMetr string, nameMetr string, metr
 	return err
 }
 
+func sendHashKey(r *http.Request, data []byte) {
+	if config.HashKeyAgent != "" {
+		hBody := bytes.Clone(data)
+		hBody = append(hBody, []byte(config.HashKeyAgent)...)
+		h := sha256.Sum256(hBody)
+		r.Header.Add("HashSHA256", fmt.Sprintf("%x", h))
+	}
+}
+
 func sendRequestJSONInt(host string, typeMetr string, nameMetr string, metrics int64) error {
 	url := "http://" + host + "/update/"
 	tJSON := model.JSONMetrics{}
@@ -138,12 +142,7 @@ func sendRequestJSONInt(host string, typeMetr string, nameMetr string, metrics i
 	r, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(helpers.Compress(tModel)))
 	r.Header.Add("Content-Encoding", "gzip")
 	r.Header.Add("Content-Type", "application/json")
-	if config.HashKeyAgent != "" {
-		h := sha256.New()
-		h.Write(helpers.Compress(tModel))
-		dst := h.Sum(nil)
-		r.Header.Add("HashSHA256", fmt.Sprintf("%x", dst))
-	}
+	sendHashKey(r, tModel)
 	body, err := client.Do(r)
 	if err != nil {
 		log.Error(err.Error())
