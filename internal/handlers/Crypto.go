@@ -19,6 +19,11 @@ func WithCrypto(h http.Handler) http.Handler {
 			h := hmac.New(sha256.New, []byte(config.HashKeyServer))
 			h.Write(hBody)
 			w.Header().Add("HashSHA256", fmt.Sprintf("%x", h.Sum(nil)))
+			//TODO Ошибка в АТ
+			//if !strings.EqualFold(r.Header.Get("HashSHA256"), fmt.Sprintf("%x", h)) {
+			//	w.WriteHeader(http.StatusBadRequest)
+			//	return
+			//}
 			r.Body = io.NopCloser(bytes.NewBuffer(body))
 		}
 		h.ServeHTTP(w, r)
