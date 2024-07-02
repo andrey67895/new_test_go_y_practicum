@@ -11,10 +11,10 @@ import (
 )
 
 func GetAllData(iStorage storage.IStorageData) http.HandlerFunc {
-	return func(w http.ResponseWriter, _ *http.Request) {
+	return func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		w.WriteHeader(http.StatusOK)
-		data, err := iStorage.GetData()
+		data, err := iStorage.GetData(req.Context())
 		if err != nil {
 			log.Error(err.Error())
 			return
@@ -32,7 +32,7 @@ func GetDataByPathParams(iStorage storage.IStorageData) http.HandlerFunc {
 		typeMet := chi.URLParam(req, "type")
 		nameMet := chi.URLParam(req, "name")
 		if typeMet == "gauge" {
-			localGauge, err := iStorage.GetGauge(nameMet)
+			localGauge, err := iStorage.GetGauge(req.Context(), nameMet)
 			if err != nil {
 				http.Error(w, "Название метрики не найдено", http.StatusNotFound)
 				return
@@ -43,7 +43,7 @@ func GetDataByPathParams(iStorage storage.IStorageData) http.HandlerFunc {
 			}
 		} else if typeMet == "counter" {
 
-			localCounter, err := iStorage.GetCounter(nameMet)
+			localCounter, err := iStorage.GetCounter(req.Context(), nameMet)
 			if err != nil {
 				http.Error(w, "Название метрики не найдено", http.StatusNotFound)
 				return
@@ -83,7 +83,7 @@ func SaveDataForPathParams(iStorage storage.IStorageData) http.HandlerFunc {
 				http.Error(w, "Неверный значение метрики! Допустимые числовые значения!", http.StatusBadRequest)
 				return
 			}
-			err = iStorage.RetrySaveGauge(nameMet, valueMet)
+			err = iStorage.RetrySaveGauge(req.Context(), nameMet, valueMet)
 			if err != nil {
 				return
 			}
@@ -94,14 +94,14 @@ func SaveDataForPathParams(iStorage storage.IStorageData) http.HandlerFunc {
 				http.Error(w, "Неверный значение метрики! Допустимые числовые значения!", http.StatusBadRequest)
 				return
 			}
-			localCounter, err := iStorage.GetCounter(nameMet)
+			localCounter, err := iStorage.GetCounter(req.Context(), nameMet)
 			if err != nil {
-				err = iStorage.RetrySaveCounter(nameMet, int64(valueMet))
+				err = iStorage.RetrySaveCounter(req.Context(), nameMet, int64(valueMet))
 				if err != nil {
 					return
 				}
 			} else {
-				err = iStorage.RetrySaveCounter(nameMet, int64(int(localCounter)+valueMet))
+				err = iStorage.RetrySaveCounter(req.Context(), nameMet, int64(int(localCounter)+valueMet))
 				if err != nil {
 					return
 				}

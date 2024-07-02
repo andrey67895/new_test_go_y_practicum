@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"os"
@@ -20,7 +21,8 @@ func main() {
 	config.InitServerConfig()
 	var st storage.IStorageData
 	if config.DatabaseDsn != "" {
-		st = storage.InitDB()
+		ctx := context.Background()
+		st = storage.InitDB(ctx)
 	} else {
 		st = storage.InMemStorage{}
 		if config.FileStoragePathServer != "" {

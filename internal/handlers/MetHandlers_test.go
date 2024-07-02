@@ -122,7 +122,7 @@ func TestCountValueCounter(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			st := storage.InMemStorage{}
-			err := st.RetrySaveCounter("Test", 100)
+			err := st.RetrySaveCounter(context.Background(), "Test", 100)
 			assert.NoError(t, err)
 			w := httptest.NewRecorder()
 			req := AddChiURLParams(httptest.NewRequest("POST", "/update/counter/Test/100", nil), map[string]string{
@@ -133,7 +133,7 @@ func TestCountValueCounter(t *testing.T) {
 			res := w.Result()
 			assert.Equal(t, test.want.code, res.StatusCode)
 			assert.Equal(t, test.want.contentType, res.Header.Get("Content-Type"))
-			value, err := st.GetCounter("Test")
+			value, err := st.GetCounter(context.Background(), "Test")
 			assert.NoError(t, err)
 			assert.Equal(t, 200, int(value))
 			_ = res.Body.Close()

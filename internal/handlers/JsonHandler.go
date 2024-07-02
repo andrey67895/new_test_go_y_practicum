@@ -50,22 +50,22 @@ func SaveMetDataForJSON(iStorage storage.IStorageData) http.HandlerFunc {
 		switch typeMet {
 		case "gauge":
 			valueMet := tModel.GetValue()
-			err := iStorage.RetrySaveGauge(nameMet, valueMet)
+			err := iStorage.RetrySaveGauge(req.Context(), nameMet, valueMet)
 			if err != nil {
 				log.Error(err.Error())
 				return
 			}
 		case "counter":
 			valueMet := tModel.GetDelta()
-			localCounter, err := iStorage.GetCounter(nameMet)
+			localCounter, err := iStorage.GetCounter(req.Context(), nameMet)
 			if err != nil {
-				err := iStorage.RetrySaveCounter(nameMet, valueMet)
+				err := iStorage.RetrySaveCounter(req.Context(), nameMet, valueMet)
 				if err != nil {
 					return
 				}
 			} else {
 				tModel.SetDelta(localCounter + valueMet)
-				err := iStorage.RetrySaveCounter(nameMet, tModel.GetDelta())
+				err := iStorage.RetrySaveCounter(req.Context(), nameMet, tModel.GetDelta())
 				if err != nil {
 					return
 				}
@@ -112,23 +112,23 @@ func SaveArraysMetDataForJSON(iStorage storage.IStorageData) http.HandlerFunc {
 			switch typeMet {
 			case "gauge":
 				valueMet := tModel.GetValue()
-				err := iStorage.RetrySaveGauge(nameMet, valueMet)
+				err := iStorage.RetrySaveGauge(req.Context(), nameMet, valueMet)
 				if err != nil {
 					log.Error(err.Error())
 					return
 				}
 			case "counter":
 				valueMet := tModel.GetDelta()
-				localCounter, err := iStorage.GetCounter(nameMet)
+				localCounter, err := iStorage.GetCounter(req.Context(), nameMet)
 				if err != nil {
-					err := iStorage.RetrySaveCounter(nameMet, valueMet)
+					err := iStorage.RetrySaveCounter(req.Context(), nameMet, valueMet)
 					if err != nil {
 						log.Error(err.Error())
 						return
 					}
 				} else {
 					tModel.SetDelta(localCounter + valueMet)
-					err := iStorage.RetrySaveCounter(nameMet, tModel.GetDelta())
+					err := iStorage.RetrySaveCounter(req.Context(), nameMet, tModel.GetDelta())
 					if err != nil {
 						log.Error(err.Error())
 						return
@@ -163,7 +163,7 @@ func GetDataForJSON(iStorage storage.IStorageData) http.HandlerFunc {
 		nameMet := tModel.ID
 		switch typeMet {
 		case "gauge":
-			localGauge, err := iStorage.GetGauge(nameMet)
+			localGauge, err := iStorage.GetGauge(req.Context(), nameMet)
 			if err != nil {
 				http.Error(w, "Название метрики не найдено", http.StatusNotFound)
 				return
@@ -179,7 +179,7 @@ func GetDataForJSON(iStorage storage.IStorageData) http.HandlerFunc {
 				return
 			}
 		case "counter":
-			localCounter, err := iStorage.GetCounter(nameMet)
+			localCounter, err := iStorage.GetCounter(req.Context(), nameMet)
 			if err != nil {
 				http.Error(w, "Название метрики не найдено", http.StatusNotFound)
 				return
