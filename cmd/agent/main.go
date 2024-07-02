@@ -15,6 +15,8 @@ import (
 	"github.com/andrey67895/new_test_go_y_practicum/internal/helpers"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/logger"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
+	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/mem"
 )
 
 var log = logger.Log()
@@ -28,14 +30,32 @@ var metricsName = []string{"Alloc", "BuckHashSys", "Frees", "GCCPUFraction", "GC
 var count = model.NewCount("PollCount", 0)
 var metrics = model.NewMetrics()
 
+func worker(name string, results chan<- int) {
+	err := metrics.SetDataMetrics(name, model.NewGauge(name, getMemByStats(name)))
+	if err != nil {
+		log.Error(err)
+	}
+	results <- 1
+}
+
 func updateMetrics(pollInterval time.Duration) {
 	for {
+		numJobs := len(metricsName)
+		jobs := make(chan int, numJobs)
+		results := make(chan int, numJobs)
 		for _, statName := range metricsName {
-			err := metrics.SetDataMetrics(statName, model.NewGauge(statName, getMemByStats(statName)))
-			if err != nil {
-				log.Error(err.Error())
-			}
+			statName := statName
+			go worker(statName, results)
 		}
+		for j := 1; j <= numJobs; j++ {
+			jobs <- j
+		}
+		close(jobs)
+		for a := 1; a <= numJobs; a++ {
+			<-results
+		}
+
+		go getMemByGopsutil()
 		count.UpdateCountPlusOne()
 		time.Sleep(pollInterval * time.Second)
 	}
@@ -164,6 +184,19 @@ func main() {
 	go sendMetrics(time.Duration(config.ReportIntervalAgent), config.HostAgent)
 	server := http.Server{}
 	log.Fatal(server.ListenAndServe())
+}
+
+func getMemByGopsutil() {
+	v, _ := mem.VirtualMemory()
+	err := metrics.SetDataMetrics("TotalMemory", model.NewGauge("TotalMemory", float64(v.Total)))
+	err = metrics.SetDataMetrics("FreeMemory", model.NewGauge("FreeMemory", float64(v.Free)))
+	c, _ := cpu.Percent(0, true)
+	for i, percent := range c {
+		err = metrics.SetDataMetrics(fmt.Sprintf("CPUutilization%d", i+1), model.NewGauge(fmt.Sprintf("CPUutilization%d", i+1), percent))
+	}
+	if err != nil {
+		log.Error(err.Error())
+	}
 }
 
 func getMemByStats(name string) float64 {
