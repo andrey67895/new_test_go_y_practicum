@@ -14,7 +14,9 @@ import (
 func WithCrypto(h http.Handler) http.Handler {
 	cryptoFn := func(w http.ResponseWriter, r *http.Request) {
 		if config.HashKeyServer != "" {
+			println(config.HashKeyServer)
 			body, _ := io.ReadAll(r.Body)
+
 			hBody := bytes.Clone(body)
 			hBody = append(hBody, []byte(config.HashKeyServer)...)
 			h := sha256.Sum256(hBody)
