@@ -23,7 +23,7 @@ func InitServerConfig() {
 		HostServer = envRunAddr
 	}
 
-	flag.StringVar(&HashKeyServer, "k", "123", "Key for hash")
+	flag.StringVar(&HashKeyServer, "k", "", "Key for hash")
 	//flag.StringVar(&DatabaseDsn, "d", fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", `localhost`, 6543, `admin`, `admin`, `hr_netology`), "DataBase dsn for server")
 	flag.StringVar(&DatabaseDsn, "d", "", "DataBase dsn for server")
 
