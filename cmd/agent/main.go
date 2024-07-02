@@ -189,7 +189,13 @@ func main() {
 func getMemByGopsutil() {
 	v, _ := mem.VirtualMemory()
 	err := metrics.SetDataMetrics("TotalMemory", model.NewGauge("TotalMemory", float64(v.Total)))
+	if err != nil {
+		log.Error(err.Error())
+	}
 	err = metrics.SetDataMetrics("FreeMemory", model.NewGauge("FreeMemory", float64(v.Free)))
+	if err != nil {
+		log.Error(err.Error())
+	}
 	c, _ := cpu.Percent(0, true)
 	for i, percent := range c {
 		err = metrics.SetDataMetrics(fmt.Sprintf("CPUutilization%d", i+1), model.NewGauge(fmt.Sprintf("CPUutilization%d", i+1), percent))
