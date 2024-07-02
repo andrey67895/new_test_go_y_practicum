@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
@@ -125,8 +126,8 @@ func retrySendRequestJSONInt(host string, typeMetr string, nameMetr string, metr
 func sendHashKey(r *http.Request, data []byte) {
 	if config.HashKeyAgent != "" {
 		hBody := bytes.Clone(data)
-		hBody = append(hBody, []byte(config.HashKeyAgent)...)
-		h := sha256.Sum256(hBody)
+		h := hmac.New(sha256.New, []byte(config.HashKeyServer))
+		h.Write(hBody)
 		r.Header.Add("HashSHA256", fmt.Sprintf("%x", h))
 	}
 }

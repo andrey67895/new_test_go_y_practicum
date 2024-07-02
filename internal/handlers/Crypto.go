@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"crypto/hmac"
 	"crypto/sha256"
 	"fmt"
 	"io"
@@ -16,12 +17,12 @@ func WithCrypto(h http.Handler) http.Handler {
 		if config.HashKeyServer != "" {
 			println(config.HashKeyServer)
 			body, _ := io.ReadAll(r.Body)
-
 			hBody := bytes.Clone(body)
-			hBody = append(hBody, []byte(config.HashKeyServer)...)
-			h := sha256.Sum256(hBody)
-			w.Header().Add("HashSHA256", fmt.Sprintf("%x", h))
+			h := hmac.New(sha256.New, []byte(config.HashKeyServer))
+			h.Write(hBody)
+			w.Header().Add("HashSHA256", fmt.Sprintf("%x", h.Sum(nil)))
 			if !strings.EqualFold(r.Header.Get("HashSHA256"), fmt.Sprintf("%x", h)) {
+
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
