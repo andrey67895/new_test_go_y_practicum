@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"os"
@@ -18,13 +19,20 @@ var log = logger.Log()
 
 func main() {
 	config.InitServerConfig()
-	if config.FileStoragePathServer != "" {
-		if config.RestoreServer {
-			RestoringDataFromFile(config.FileStoragePathServer)
+	var st storage.IStorageData
+	if config.DatabaseDsn != "" {
+		ctx := context.Background()
+		st = storage.InitDB(ctx)
+	} else {
+		st = storage.InMemStorage{}
+		if config.FileStoragePathServer != "" {
+			if config.RestoreServer {
+				RestoringDataFromFile(config.FileStoragePathServer)
+			}
+			go SaveDataForInterval(config.FileStoragePathServer, config.StoreIntervalServer)
 		}
-		go SaveDataForInterval(config.FileStoragePathServer, config.StoreIntervalServer)
 	}
-	log.Fatal(http.ListenAndServe(":"+config.PortServer, router.GetRoutersForServer()))
+	log.Fatal(http.ListenAndServe(":"+config.PortServer, router.GetRoutersForServer(st)))
 }
 
 func RestoringDataFromFile(fname string) {
