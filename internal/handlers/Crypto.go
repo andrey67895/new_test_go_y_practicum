@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 
 	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
 )
@@ -15,17 +14,11 @@ import (
 func WithCrypto(h http.Handler) http.Handler {
 	cryptoFn := func(w http.ResponseWriter, r *http.Request) {
 		if config.HashKeyServer != "" {
-			println(config.HashKeyServer)
 			body, _ := io.ReadAll(r.Body)
 			hBody := bytes.Clone(body)
 			h := hmac.New(sha256.New, []byte(config.HashKeyServer))
 			h.Write(hBody)
 			w.Header().Add("HashSHA256", fmt.Sprintf("%x", h.Sum(nil)))
-			if !strings.EqualFold(r.Header.Get("HashSHA256"), fmt.Sprintf("%x", h)) {
-
-				w.WriteHeader(http.StatusBadRequest)
-				return
-			}
 			r.Body = io.NopCloser(bytes.NewBuffer(body))
 		}
 		h.ServeHTTP(w, r)
