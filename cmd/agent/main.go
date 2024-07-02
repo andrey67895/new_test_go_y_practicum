@@ -53,8 +53,16 @@ func sendMetrics(pollInterval time.Duration, host string) {
 				Value: &gauge,
 			})
 		}
-		retrySendRequestJSONFloatAll(host, tJSON)
-		retrySendRequestJSONInt(host, "counter", count.GetName(), count.GetMetrics())
+		err := retrySendRequestJSONFloatAll(host, tJSON)
+		if err != nil {
+			log.Error(err.Error())
+			continue
+		}
+		err = retrySendRequestJSONInt(host, "counter", count.GetName(), count.GetMetrics())
+		if err != nil {
+			log.Error(err.Error())
+			continue
+		}
 		count.ClearCount()
 
 	}
@@ -87,7 +95,7 @@ func sendRequestJSONFloatAll(host string, tJSON []model.JSONMetrics) error {
 	return err
 }
 
-func retrySendRequestJSONFloatAll(host string, tJSON []model.JSONMetrics) {
+func retrySendRequestJSONFloatAll(host string, tJSON []model.JSONMetrics) error {
 	err := sendRequestJSONFloatAll(host, tJSON)
 	if err != nil {
 		for i := 1; i <= 5; i = i + 2 {
@@ -100,9 +108,10 @@ func retrySendRequestJSONFloatAll(host string, tJSON []model.JSONMetrics) {
 			}
 		}
 	}
+	return err
 }
 
-func retrySendRequestJSONInt(host string, typeMetr string, nameMetr string, metrics int64) {
+func retrySendRequestJSONInt(host string, typeMetr string, nameMetr string, metrics int64) error {
 	err := sendRequestJSONInt(host, typeMetr, nameMetr, metrics)
 	if err != nil {
 		for i := 1; i <= 5; i = i + 2 {
@@ -115,6 +124,7 @@ func retrySendRequestJSONInt(host string, typeMetr string, nameMetr string, metr
 			}
 		}
 	}
+	return err
 }
 
 func sendRequestJSONInt(host string, typeMetr string, nameMetr string, metrics int64) error {

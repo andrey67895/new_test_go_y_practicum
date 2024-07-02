@@ -24,7 +24,7 @@ func InitServerConfig() {
 	}
 
 	flag.StringVar(&HashKeyServer, "k", "123", "Key for hash")
-	//flag.StringVar(&DatabaseDsn, "d", fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", `localhost`, 5434, `docker`, `docker`, `postgres`), "DataBase dsn for server")
+	//flag.StringVar(&DatabaseDsn, "d", fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", `localhost`, 6543, `admin`, `admin`, `hr_netology`), "DataBase dsn for server")
 	flag.StringVar(&DatabaseDsn, "d", "", "DataBase dsn for server")
 
 	flag.IntVar(&StoreIntervalServer, "i", 300, "интервал времени в секундах, по истечении которого текущие показания сервера сохраняются на диск")

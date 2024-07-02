@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"os"
@@ -8,7 +9,6 @@ import (
 	"time"
 
 	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
-	"github.com/andrey67895/new_test_go_y_practicum/internal/helpers"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/logger"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/router"
@@ -19,18 +19,20 @@ var log = logger.Log()
 
 func main() {
 	config.InitServerConfig()
+	var st storage.IStorageData
 	if config.DatabaseDsn != "" {
-		helpers.DB = helpers.InitDB()
-		helpers.InitTable()
-
-	}
-	if config.FileStoragePathServer != "" {
-		if config.RestoreServer {
-			RestoringDataFromFile(config.FileStoragePathServer)
+		ctx := context.Background()
+		st = storage.InitDB(ctx)
+	} else {
+		st = storage.InMemStorage{}
+		if config.FileStoragePathServer != "" {
+			if config.RestoreServer {
+				RestoringDataFromFile(config.FileStoragePathServer)
+			}
+			go SaveDataForInterval(config.FileStoragePathServer, config.StoreIntervalServer)
 		}
-		go SaveDataForInterval(config.FileStoragePathServer, config.StoreIntervalServer)
 	}
-	log.Fatal(http.ListenAndServe(":"+config.PortServer, router.GetRoutersForServer()))
+	log.Fatal(http.ListenAndServe(":"+config.PortServer, router.GetRoutersForServer(st)))
 }
 
 func RestoringDataFromFile(fname string) {
@@ -56,9 +58,6 @@ func SaveData(tModel model.JSONMetrics) {
 	switch typeMet {
 	case "gauge":
 		valueMet := tModel.GetValue()
-		if config.DatabaseDsn != "" {
-			helpers.RetrySaveGaugeInDB(nameMet, valueMet)
-		}
 		err := storage.LocalNewMemStorageGauge.SetGauge(nameMet, valueMet)
 		if err != nil {
 			log.Error(err.Error())
@@ -68,18 +67,12 @@ func SaveData(tModel model.JSONMetrics) {
 		valueMet := tModel.GetDelta()
 		localCounter, err := storage.LocalNewMemStorageCounter.GetCounter(nameMet)
 		if err != nil {
-			if config.DatabaseDsn != "" {
-				helpers.RetrySaveCounterInDB(nameMet, valueMet)
-			}
 			err := storage.LocalNewMemStorageCounter.SetCounter(nameMet, valueMet)
 			if err != nil {
 				log.Error(err.Error())
 				return
 			} else {
 				tModel.SetDelta(localCounter + valueMet)
-				if config.DatabaseDsn != "" {
-					helpers.RetrySaveCounterInDB(nameMet, tModel.GetDelta())
-				}
 				err = storage.LocalNewMemStorageCounter.SetCounter(nameMet, tModel.GetDelta())
 				if err != nil {
 					log.Error(err.Error())
