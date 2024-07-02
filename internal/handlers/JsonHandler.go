@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/andrey67895/new_test_go_y_practicum/internal/logger"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
@@ -26,17 +25,6 @@ func GetPing(iStorage storage.IStorageData) http.HandlerFunc {
 
 func SaveMetDataForJSON(iStorage storage.IStorageData) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		contentEncoding := req.Header.Get("Content-Encoding")
-		sendsGzip := strings.Contains(contentEncoding, "gzip")
-		if sendsGzip {
-			cr, err := newCompressReader(req.Body)
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-			req.Body = cr.zr
-			defer cr.zr.Close()
-		}
 		w.Header().Set("Content-Type", "application/json")
 		var tModel model.JSONMetrics
 		err := json.NewDecoder(req.Body).Decode(&tModel)
@@ -87,19 +75,9 @@ func SaveMetDataForJSON(iStorage storage.IStorageData) http.HandlerFunc {
 
 func SaveArraysMetDataForJSON(iStorage storage.IStorageData) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		contentEncoding := req.Header.Get("Content-Encoding")
-		sendsGzip := strings.Contains(contentEncoding, "gzip")
-		if sendsGzip {
-			cr, err := newCompressReader(req.Body)
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-			req.Body = cr.zr
-			defer cr.zr.Close()
-		}
 		w.Header().Set("Content-Type", "application/json")
 		var tModels []model.JSONMetrics
+		println(req.Body)
 		err := json.NewDecoder(req.Body).Decode(&tModels)
 		if err != nil {
 			log.Error(err.Error())

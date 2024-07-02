@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
 	"github.com/go-chi/chi/v5"
@@ -63,17 +62,6 @@ func GetDataByPathParams(iStorage storage.IStorageData) http.HandlerFunc {
 
 func SaveDataForPathParams(iStorage storage.IStorageData) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		contentEncoding := req.Header.Get("Content-Encoding")
-		sendsGzip := strings.Contains(contentEncoding, "gzip")
-		if sendsGzip {
-			cr, err := newCompressReader(req.Body)
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-			req.Body = cr.r
-			defer cr.zr.Close()
-		}
 		typeMet := chi.URLParam(req, "type")
 		nameMet := chi.URLParam(req, "name")
 

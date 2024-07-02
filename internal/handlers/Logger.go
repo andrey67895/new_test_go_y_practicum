@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/andrey67895/new_test_go_y_practicum/internal/logger"
@@ -29,24 +28,6 @@ func (r *loggingResponseWriter) Write(b []byte) (int, error) {
 func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 	r.ResponseWriter.WriteHeader(statusCode)
 	r.responseData.status = statusCode
-}
-
-func WithSendsGzip(h http.Handler) http.Handler {
-	gzipFn := func(w http.ResponseWriter, req *http.Request) {
-		contentEncoding := req.Header.Get("Content-Encoding")
-		sendsGzip := strings.Contains(contentEncoding, "gzip")
-		if sendsGzip {
-			cr, err := newCompressReader(req.Body)
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-			req.Body = cr.r
-			defer cr.zr.Close()
-		}
-		h.ServeHTTP(w, req)
-	}
-	return http.HandlerFunc(gzipFn)
 }
 
 func WithLogging(h http.Handler) http.Handler {
