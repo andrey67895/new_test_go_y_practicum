@@ -51,3 +51,23 @@ func newCompressReader(r io.ReadCloser) (*CompressReader, error) {
 		zr: zr,
 	}, nil
 }
+
+func WithSendsGzip(h http.Handler) http.Handler {
+	gzipFn := func(w http.ResponseWriter, req *http.Request) {
+		contentEncoding := req.Header.Get("Content-Encoding")
+		sendsGzip := strings.Contains(contentEncoding, "gzip")
+		if sendsGzip {
+			cr, err := newCompressReader(req.Body)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				log.Error(err.Error())
+				return
+			}
+			req.Body = cr.zr
+
+			defer cr.zr.Close()
+		}
+		h.ServeHTTP(w, req)
+	}
+	return http.HandlerFunc(gzipFn)
+}
