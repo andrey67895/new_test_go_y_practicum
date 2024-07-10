@@ -30,3 +30,17 @@ func WithCrypto(h http.Handler) http.Handler {
 	}
 	return http.HandlerFunc(cryptoFn)
 }
+
+func CheckHeaderCrypto(h http.Handler) http.Handler {
+	cryptoFn := func(w http.ResponseWriter, r *http.Request) {
+		if config.HashKeyServer != "" {
+			if r.Header.Get("HashSHA256") == "" {
+				log.Error("Отсутсвует header ключ HashSHA256")
+				http.Error(w, "Отсутсвует header ключ HashSHA256", http.StatusBadRequest)
+				return
+			}
+		}
+		h.ServeHTTP(w, r)
+	}
+	return http.HandlerFunc(cryptoFn)
+}
