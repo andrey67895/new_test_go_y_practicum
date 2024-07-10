@@ -23,7 +23,7 @@ func WithCrypto(h http.Handler) http.Handler {
 
 			if !strings.EqualFold(r.Header.Get("HashSHA256"), fmt.Sprintf("%x", h)) {
 				log.Error("Не соответсвует hash: сгенерированному и полученному")
-				//TODO Ошибка в АТ
+				//TODO Ошибка в АТ, в них отсутсвует проброска HashSHA256
 				//	w.WriteHeader(http.StatusBadRequest)
 				//	return
 			}
@@ -39,7 +39,7 @@ func CheckHeaderCrypto(h http.Handler) http.Handler {
 		if config.HashKeyServer != "" {
 			if r.Header.Get("HashSHA256") == "" {
 				log.Error("Отсутсвует header ключ HashSHA256")
-				//TODO Ошибка в АТ
+				//TODO Ошибка в АТ, в них отсутсвует проброска HashSHA256
 				// http.Error(w, "Отсутсвует header ключ HashSHA256", http.StatusBadRequest)
 				// return
 			}
