@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"net/http"
 	"runtime"
+	"sync"
 	"time"
 
 	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
@@ -30,32 +31,21 @@ var metricsName = []string{"Alloc", "BuckHashSys", "Frees", "GCCPUFraction", "GC
 var count = model.NewCount("PollCount", 0)
 var metrics = model.NewMetrics()
 
-func worker(name string, results chan<- int) {
-	err := metrics.SetDataMetrics(name, model.NewGauge(name, getMemByStats(name)))
-	if err != nil {
-		log.Error(err)
-	}
-	results <- 1
-}
-
 func updateMetrics(pollInterval time.Duration) {
 	for {
-		numJobs := len(metricsName)
-		jobs := make(chan int, numJobs)
-		results := make(chan int, numJobs)
-		for _, statName := range metricsName {
-			statName := statName
-			go worker(statName, results)
-		}
-		for j := 1; j <= numJobs; j++ {
-			jobs <- j
-		}
-		close(jobs)
-		for a := 1; a <= numJobs; a++ {
-			<-results
-		}
-
-		go getMemByGopsutil()
+		var wg sync.WaitGroup
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			for _, statName := range metricsName {
+				metrics.SetDataMetrics(statName, model.NewGauge(statName, getMemByStats(statName)))
+			}
+		}()
+		go func() {
+			defer wg.Done()
+			getMemByGopsutil()
+		}()
+		wg.Wait()
 		count.UpdateCountPlusOne()
 		time.Sleep(pollInterval * time.Second)
 	}
@@ -188,20 +178,11 @@ func main() {
 
 func getMemByGopsutil() {
 	v, _ := mem.VirtualMemory()
-	err := metrics.SetDataMetrics("TotalMemory", model.NewGauge("TotalMemory", float64(v.Total)))
-	if err != nil {
-		log.Error(err.Error())
-	}
-	err = metrics.SetDataMetrics("FreeMemory", model.NewGauge("FreeMemory", float64(v.Free)))
-	if err != nil {
-		log.Error(err.Error())
-	}
+	metrics.SetDataMetrics("TotalMemory", model.NewGauge("TotalMemory", float64(v.Total)))
+	metrics.SetDataMetrics("FreeMemory", model.NewGauge("FreeMemory", float64(v.Free)))
 	c, _ := cpu.Percent(0, true)
 	for i, percent := range c {
-		err = metrics.SetDataMetrics(fmt.Sprintf("CPUutilization%d", i+1), model.NewGauge(fmt.Sprintf("CPUutilization%d", i+1), percent))
-	}
-	if err != nil {
-		log.Error(err.Error())
+		metrics.SetDataMetrics(fmt.Sprintf("CPUutilization%d", i+1), model.NewGauge(fmt.Sprintf("CPUutilization%d", i+1), percent))
 	}
 }
 

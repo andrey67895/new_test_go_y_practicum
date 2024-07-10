@@ -13,11 +13,10 @@ func NewMetrics() *Metrics {
 	}
 }
 
-func (e *Metrics) SetDataMetrics(key string, value Gauge) error {
+func (e *Metrics) SetDataMetrics(key string, value Gauge) {
 	e.mut.Lock()
 	e.data[key] = value
 	e.mut.Unlock()
-	return nil
 }
 
 func (e *Metrics) GetDataMetrics() map[string]Gauge {
