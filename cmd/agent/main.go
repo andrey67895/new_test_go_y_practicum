@@ -51,21 +51,19 @@ func sendMetrics(pollInterval time.Duration, host string) {
 	for {
 		time.Sleep(pollInterval * time.Second)
 
-		var tJSON []model.JSONMetrics
 		for k, v := range metrics.GetDataMetrics() {
 			gauge := v.GetMetrics()
-			tJSON = append(tJSON, model.JSONMetrics{
+			tJSON := model.JSONMetrics{
 				ID:    k,
 				MType: "gauge",
-				Value: &gauge,
-			})
+				Value: &gauge}
+			err := retrySendRequestJSONFloat(host, tJSON)
+			if err != nil {
+				log.Error(err.Error())
+				continue
+			}
 		}
-		err := retrySendRequestJSONFloatAll(host, tJSON)
-		if err != nil {
-			log.Error(err.Error())
-			continue
-		}
-		err = retrySendRequestJSONInt(host, "counter", count.GetName(), count.GetMetrics())
+		err := retrySendRequestJSONInt(host, "counter", count.GetName(), count.GetMetrics())
 		if err != nil {
 			log.Error(err.Error())
 			continue
@@ -75,8 +73,8 @@ func sendMetrics(pollInterval time.Duration, host string) {
 	}
 }
 
-func sendRequestJSONFloatAll(host string, tJSON []model.JSONMetrics) error {
-	url := "http://" + host + "/updates/"
+func sendRequestJSONFloat(host string, tJSON model.JSONMetrics) error {
+	url := "http://" + host + "/update/"
 	tModel, _ := json.Marshal(tJSON)
 	client := &http.Client{}
 	r, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(helpers.Compress(tModel)))
@@ -97,14 +95,14 @@ func sendRequestJSONFloatAll(host string, tJSON []model.JSONMetrics) error {
 	return err
 }
 
-func retrySendRequestJSONFloatAll(host string, tJSON []model.JSONMetrics) error {
-	err := sendRequestJSONFloatAll(host, tJSON)
+func retrySendRequestJSONFloat(host string, tJSON model.JSONMetrics) error {
+	err := sendRequestJSONFloat(host, tJSON)
 	if err != nil {
 		for i := 1; i <= 5; i = i + 2 {
 			timer := time.NewTimer(time.Duration(i) * time.Second)
 			t := <-timer.C
 			log.Info(t.Local())
-			err = sendRequestJSONFloatAll(host, tJSON)
+			err = sendRequestJSONFloat(host, tJSON)
 			if err == nil {
 				break
 			}
