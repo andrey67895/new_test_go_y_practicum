@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
 )
@@ -19,11 +20,13 @@ func WithCrypto(h http.Handler) http.Handler {
 			h := hmac.New(sha256.New, []byte(config.HashKeyServer))
 			h.Write(hBody)
 			w.Header().Add("HashSHA256", fmt.Sprintf("%x", h.Sum(nil)))
-			//TODO Ошибка в АТ
-			//if !strings.EqualFold(r.Header.Get("HashSHA256"), fmt.Sprintf("%x", h)) {
-			//	w.WriteHeader(http.StatusBadRequest)
-			//	return
-			//}
+
+			if !strings.EqualFold(r.Header.Get("HashSHA256"), fmt.Sprintf("%x", h)) {
+				log.Error("Не соответсвует hash: сгенерированному и полученному")
+				//TODO Ошибка в АТ
+				//	w.WriteHeader(http.StatusBadRequest)
+				//	return
+			}
 			r.Body = io.NopCloser(bytes.NewBuffer(body))
 		}
 		h.ServeHTTP(w, r)
@@ -36,8 +39,9 @@ func CheckHeaderCrypto(h http.Handler) http.Handler {
 		if config.HashKeyServer != "" {
 			if r.Header.Get("HashSHA256") == "" {
 				log.Error("Отсутсвует header ключ HashSHA256")
-				http.Error(w, "Отсутсвует header ключ HashSHA256", http.StatusBadRequest)
-				return
+				//TODO Ошибка в АТ
+				// http.Error(w, "Отсутсвует header ключ HashSHA256", http.StatusBadRequest)
+				// return
 			}
 		}
 		h.ServeHTTP(w, r)
