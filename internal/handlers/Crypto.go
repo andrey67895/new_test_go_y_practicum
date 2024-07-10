@@ -12,7 +12,7 @@ import (
 	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
 )
 
-func WithCrypto(h http.Handler) http.Handler {
+func ResponseAddHeaderCrypto(h http.Handler) http.Handler {
 	cryptoFn := func(w http.ResponseWriter, r *http.Request) {
 		if config.HashKeyServer != "" {
 			body, _ := io.ReadAll(r.Body)
