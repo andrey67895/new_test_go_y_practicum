@@ -47,33 +47,62 @@ func updateMetrics(pollInterval time.Duration) {
 	}
 }
 
+func workerRequestJSON(host string, wg *sync.WaitGroup, inCh <-chan model.JSONMetrics, outCh chan<- error) {
+	defer wg.Done()
+	for tModel := range inCh {
+		err := retrySendRequestJSON(host, tModel)
+		outCh <- err
+	}
+}
+
 func sendMetrics(pollInterval time.Duration, host string) {
 	for {
 		time.Sleep(pollInterval * time.Second)
 
+		var JSONMetricsList []model.JSONMetrics
 		for k, v := range metrics.GetDataMetrics() {
 			gauge := v.GetMetrics()
-			tJSON := model.JSONMetrics{
+			JSONMetricsList = append(JSONMetricsList, model.JSONMetrics{
 				ID:    k,
 				MType: "gauge",
-				Value: &gauge}
-			err := retrySendRequestJSONFloat(host, tJSON)
-			if err != nil {
-				log.Error(err.Error())
-				continue
+				Value: &gauge})
+
+		}
+		tCounter := model.JSONMetrics{}
+		tCounter.ID = count.GetName()
+		tCounter.MType = "counter"
+		tCounter.SetDelta(count.GetMetrics())
+		JSONMetricsList = append(JSONMetricsList, tCounter)
+
+		inputCh := make(chan model.JSONMetrics)
+		outputCh := make(chan error)
+		wg := &sync.WaitGroup{}
+
+		go func() {
+			defer close(inputCh)
+			for i := range JSONMetricsList {
+				inputCh <- JSONMetricsList[i]
+			}
+		}()
+		go func() {
+			for i := 0; i < config.RateLimit; i++ {
+				wg.Add(1)
+				go workerRequestJSON(host, wg, inputCh, outputCh)
+			}
+			wg.Wait()
+			close(outputCh)
+		}()
+		for res := range outputCh {
+			if res != nil {
+				log.Error(res.Error())
+				return
 			}
 		}
-		err := retrySendRequestJSONInt(host, "counter", count.GetName(), count.GetMetrics())
-		if err != nil {
-			log.Error(err.Error())
-			continue
-		}
 		count.ClearCount()
-
 	}
 }
 
-func sendRequestJSONFloat(host string, tJSON model.JSONMetrics) error {
+func sendRequestJSON(host string, tJSON model.JSONMetrics) error {
 	url := "http://" + host + "/update/"
 	tModel, _ := json.Marshal(tJSON)
 	client := &http.Client{}
@@ -95,30 +124,14 @@ func sendRequestJSONFloat(host string, tJSON model.JSONMetrics) error {
 	return err
 }
 
-func retrySendRequestJSONFloat(host string, tJSON model.JSONMetrics) error {
-	err := sendRequestJSONFloat(host, tJSON)
+func retrySendRequestJSON(host string, tJSON model.JSONMetrics) error {
+	err := sendRequestJSON(host, tJSON)
 	if err != nil {
 		for i := 1; i <= 5; i = i + 2 {
 			timer := time.NewTimer(time.Duration(i) * time.Second)
 			t := <-timer.C
 			log.Info(t.Local())
-			err = sendRequestJSONFloat(host, tJSON)
-			if err == nil {
-				break
-			}
-		}
-	}
-	return err
-}
-
-func retrySendRequestJSONInt(host string, typeMetr string, nameMetr string, metrics int64) error {
-	err := sendRequestJSONInt(host, typeMetr, nameMetr, metrics)
-	if err != nil {
-		for i := 1; i <= 5; i = i + 2 {
-			timer := time.NewTimer(time.Duration(i) * time.Second)
-			t := <-timer.C
-			log.Info(t.Local())
-			err := sendRequestJSONInt(host, typeMetr, nameMetr, metrics)
+			err = sendRequestJSON(host, tJSON)
 			if err == nil {
 				break
 			}
@@ -134,32 +147,6 @@ func sendHashKey(r *http.Request, data []byte) {
 		h.Write(hBody)
 		r.Header.Add("HashSHA256", fmt.Sprintf("%x", h))
 	}
-}
-
-func sendRequestJSONInt(host string, typeMetr string, nameMetr string, metrics int64) error {
-	url := "http://" + host + "/update/"
-	tJSON := model.JSONMetrics{}
-	tJSON.ID = nameMetr
-	tJSON.MType = typeMetr
-	tJSON.SetDelta(metrics)
-	tModel, _ := json.Marshal(tJSON)
-	client := &http.Client{}
-	r, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(helpers.Compress(tModel)))
-	r.Header.Add("Content-Encoding", "gzip")
-	r.Header.Add("Content-Type", "application/json")
-	sendHashKey(r, tModel)
-	body, err := client.Do(r)
-	if err != nil {
-		log.Error(err.Error())
-		return err
-	} else {
-		errClose := body.Body.Close()
-		if errClose != nil {
-			log.Error(errClose.Error())
-			return errClose
-		}
-	}
-	return err
 }
 
 func main() {
