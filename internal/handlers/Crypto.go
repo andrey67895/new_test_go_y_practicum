@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
+	"regexp"
 
 	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
 )
@@ -20,13 +20,15 @@ func ResponseAddHeaderCrypto(h http.Handler) http.Handler {
 			h := hmac.New(sha256.New, []byte(config.HashKeyServer))
 			h.Write(hBody)
 			w.Header().Add("HashSHA256", fmt.Sprintf("%x", h.Sum(nil)))
-
-			if !strings.EqualFold(r.Header.Get("HashSHA256"), fmt.Sprintf("%x", h)) {
-				log.Error("Не соответсвует hash: сгенерированному и полученному")
-				//TODO Ошибка в АТ, в них отсутсвует проброска HashSHA256
-				//	w.WriteHeader(http.StatusBadRequest)
-				//	return
+			hash := r.Header.Get("HashSHA256")
+			if hash != "" {
+				if hash != fmt.Sprintf("%x", h.Sum(nil)) {
+					log.Error("Не соответсвует hash: сгенерированному и полученному")
+					w.WriteHeader(http.StatusBadRequest)
+					return
+				}
 			}
+
 			r.Body = io.NopCloser(bytes.NewBuffer(body))
 		}
 		h.ServeHTTP(w, r)
@@ -37,11 +39,14 @@ func ResponseAddHeaderCrypto(h http.Handler) http.Handler {
 func CheckHeaderCrypto(h http.Handler) http.Handler {
 	cryptoFn := func(w http.ResponseWriter, r *http.Request) {
 		if config.HashKeyServer != "" {
-			if r.Header.Get("HashSHA256") == "" {
-				log.Error("Отсутсвует header ключ HashSHA256")
-				//TODO Ошибка в АТ, в них отсутсвует проброска HashSHA256
-				// http.Error(w, "Отсутсвует header ключ HashSHA256", http.StatusBadRequest)
-				// return
+			hash := r.Header.Get("HashSHA256")
+			if hash != "" {
+				matched, _ := regexp.Match(`^[a-fA-F0-9]{64}$`, []byte(hash))
+				if !matched {
+					log.Error("HashSHA256 не валиден:", hash)
+					http.Error(w, "HashSHA256 не валиден", http.StatusBadRequest)
+					return
+				}
 			}
 		}
 		h.ServeHTTP(w, r)

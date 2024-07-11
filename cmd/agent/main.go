@@ -143,9 +143,9 @@ func retrySendRequestJSON(host string, tJSON model.JSONMetrics) error {
 func sendHashKey(r *http.Request, data []byte) {
 	if config.HashKeyAgent != "" {
 		hBody := bytes.Clone(data)
-		h := hmac.New(sha256.New, []byte(config.HashKeyServer))
+		h := hmac.New(sha256.New, []byte(config.HashKeyAgent))
 		h.Write(hBody)
-		r.Header.Add("HashSHA256", fmt.Sprintf("%x", h))
+		r.Header.Add("HashSHA256", fmt.Sprintf("%x", h.Sum(nil)))
 	}
 }
 
