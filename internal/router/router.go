@@ -10,7 +10,7 @@ import (
 func GetRoutersForServer(iStorage storage.IStorageData) *chi.Mux {
 	r := chi.NewRouter()
 
-	r.Use(middleware.RealIP, handlers.WithLogging, middleware.Recoverer, handlers.GzipHandleResponse, handlers.WithSendsGzip)
+	r.Use(middleware.RealIP, handlers.WithLogging, middleware.Recoverer, handlers.GzipHandleResponse, handlers.WithSendsGzip, handlers.CheckHeaderCrypto, handlers.ResponseAddHeaderCrypto)
 	r.Post("/update/{type}/{name}/{value}", handlers.SaveDataForPathParams(iStorage))
 	r.Post("/update/", handlers.SaveMetDataForJSON(iStorage))
 	r.Post("/updates/", handlers.SaveArraysMetDataForJSON(iStorage))
