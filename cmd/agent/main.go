@@ -103,7 +103,7 @@ func sendMetrics(pollInterval time.Duration, host string) {
 }
 
 func sendRequestJSON(host string, tJSON model.JSONMetrics) error {
-	url := host + "/update/"
+	url := "http://" + host + "/update/"
 	tModel, _ := json.Marshal(tJSON)
 	client := &http.Client{}
 	r, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(helpers.Compress(tModel)))
