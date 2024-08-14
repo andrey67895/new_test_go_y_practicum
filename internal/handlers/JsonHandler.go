@@ -77,7 +77,6 @@ func SaveArraysMetDataForJSON(iStorage storage.IStorageData) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		var tModels []model.JSONMetrics
-		println(req.Body)
 		err := json.NewDecoder(req.Body).Decode(&tModels)
 		if err != nil {
 			log.Error(err.Error())
