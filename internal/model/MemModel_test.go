@@ -1,9 +1,9 @@
 package model
 
 import (
-	"github.com/stretchr/testify/assert"
-	"sync"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCount_ClearCount(t *testing.T) {
@@ -22,12 +22,10 @@ func TestCount_ClearCount(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			mut := sync.RWMutex{}
 			e := &Count{
 				name:    test.name,
 				isGauge: false,
 				metrics: test.metrics,
-				mux:     mut,
 			}
 			e.ClearCount()
 			assert.Equal(t, 0, int(e.metrics))
@@ -40,7 +38,6 @@ func TestCount_GetMetrics(t *testing.T) {
 		name    string
 		isGauge bool
 		metrics int64
-		mux     sync.RWMutex
 	}
 	tests := []struct {
 		name   string
@@ -52,7 +49,6 @@ func TestCount_GetMetrics(t *testing.T) {
 				name:    "positive test #1",
 				isGauge: false,
 				metrics: 10,
-				mux:     sync.RWMutex{},
 			},
 		},
 		{
@@ -61,7 +57,6 @@ func TestCount_GetMetrics(t *testing.T) {
 				name:    "positive test #2",
 				isGauge: true,
 				metrics: 10,
-				mux:     sync.RWMutex{},
 			},
 		},
 	}
@@ -71,7 +66,6 @@ func TestCount_GetMetrics(t *testing.T) {
 				name:    test.fields.name,
 				isGauge: test.fields.isGauge,
 				metrics: test.fields.metrics,
-				mux:     test.fields.mux,
 			}
 			assert.Equal(t, e.GetMetrics(), test.fields.metrics)
 		})
@@ -83,7 +77,6 @@ func TestCount_GetName(t *testing.T) {
 		name    string
 		isGauge bool
 		metrics int64
-		mux     sync.RWMutex
 	}
 	tests := []struct {
 		name   string
@@ -96,7 +89,6 @@ func TestCount_GetName(t *testing.T) {
 				name:    "positive test #1",
 				isGauge: false,
 				metrics: 10,
-				mux:     sync.RWMutex{},
 			},
 		},
 		{
@@ -105,7 +97,6 @@ func TestCount_GetName(t *testing.T) {
 				name:    "positive test #2",
 				isGauge: true,
 				metrics: 10,
-				mux:     sync.RWMutex{},
 			},
 		},
 	}
@@ -115,7 +106,6 @@ func TestCount_GetName(t *testing.T) {
 				name:    tt.fields.name,
 				isGauge: tt.fields.isGauge,
 				metrics: tt.fields.metrics,
-				mux:     tt.fields.mux,
 			}
 			assert.Equal(t, e.GetName(), tt.fields.name)
 		})
@@ -127,7 +117,6 @@ func TestCount_UpdateCountPlusOne(t *testing.T) {
 		name    string
 		isGauge bool
 		metrics int64
-		mux     sync.RWMutex
 	}
 	tests := []struct {
 		name   string
@@ -140,7 +129,6 @@ func TestCount_UpdateCountPlusOne(t *testing.T) {
 				name:    "positive test #1",
 				isGauge: false,
 				metrics: 10,
-				mux:     sync.RWMutex{},
 			},
 			want: 11,
 		},
@@ -151,7 +139,6 @@ func TestCount_UpdateCountPlusOne(t *testing.T) {
 				name:    tt.fields.name,
 				isGauge: tt.fields.isGauge,
 				metrics: tt.fields.metrics,
-				mux:     tt.fields.mux,
 			}
 			e.UpdateCountPlusOne()
 			assert.Equal(t, tt.want, int(e.GetMetrics()))

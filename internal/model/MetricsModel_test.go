@@ -1,15 +1,14 @@
 package model
 
 import (
-	"github.com/stretchr/testify/assert"
 	"slices"
-	"sync"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMetrics_GetDataMetrics(t *testing.T) {
 	type fields struct {
-		mut  sync.RWMutex
 		data map[string]Gauge
 	}
 	tests := []struct {
@@ -19,7 +18,6 @@ func TestMetrics_GetDataMetrics(t *testing.T) {
 		{
 			name: "positive test #1",
 			fields: fields{
-				mut:  sync.RWMutex{},
 				data: map[string]Gauge{},
 			},
 		},
@@ -27,7 +25,6 @@ func TestMetrics_GetDataMetrics(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			e := &Metrics{
-				mut:  tt.fields.mut,
 				data: tt.fields.data,
 			}
 			key := "1"
@@ -45,7 +42,6 @@ func TestMetrics_GetDataMetrics(t *testing.T) {
 
 func TestMetrics_SetDataMetricsForMap(t *testing.T) {
 	type fields struct {
-		mut  sync.RWMutex
 		data map[string]Gauge
 	}
 	metricsName := []string{"Alloc", "BuckHashSys", "Frees", "GCCPUFraction", "GCSys", "HeapAlloc",
@@ -65,7 +61,6 @@ func TestMetrics_SetDataMetricsForMap(t *testing.T) {
 		{
 			name: "positive test #1",
 			fields: fields{
-				mut:  sync.RWMutex{},
 				data: map[string]Gauge{},
 			},
 			args: args{
@@ -76,7 +71,6 @@ func TestMetrics_SetDataMetricsForMap(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			e := &Metrics{
-				mut:  tt.fields.mut,
 				data: tt.fields.data,
 			}
 			e.SetDataMetricsForMap(tt.args.metricsName)
