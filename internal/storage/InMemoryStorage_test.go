@@ -2,8 +2,9 @@ package storage
 
 import (
 	"context"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestInMemStorage_GetCounter(t *testing.T) {
@@ -63,94 +64,3 @@ func TestInMemStorage_GetData(t *testing.T) {
 		})
 	}
 }
-
-//func TestInMemStorage_GetGauge(t *testing.T) {
-//	type args struct {
-//		in0 context.Context
-//		id  string
-//	}
-//	tests := []struct {
-//		name    string
-//		args    args
-//		want    float64
-//		wantErr bool
-//	}{
-//		// TODO: Add test cases.
-//	}
-//	for _, tt := range tests {
-//		t.Run(tt.name, func(t *testing.T) {
-//			mem := InMemStorage{}
-//			got, err := mem.GetGauge(tt.args.in0, tt.args.id)
-//			if (err != nil) != tt.wantErr {
-//				t.Errorf("GetGauge() error = %v, wantErr %v", err, tt.wantErr)
-//				return
-//			}
-//			if got != tt.want {
-//				t.Errorf("GetGauge() got = %v, want %v", got, tt.want)
-//			}
-//		})
-//	}
-//}
-//
-//func TestInMemStorage_Ping(t *testing.T) {
-//	tests := []struct {
-//		name    string
-//		wantErr bool
-//	}{
-//		// TODO: Add test cases.
-//	}
-//	for _, tt := range tests {
-//		t.Run(tt.name, func(t *testing.T) {
-//			mem := InMemStorage{}
-//			if err := mem.Ping(); (err != nil) != tt.wantErr {
-//				t.Errorf("Ping() error = %v, wantErr %v", err, tt.wantErr)
-//			}
-//		})
-//	}
-//}
-//
-//func TestInMemStorage_RetrySaveCounter(t *testing.T) {
-//	type args struct {
-//		in0   context.Context
-//		id    string
-//		value int64
-//	}
-//	tests := []struct {
-//		name    string
-//		args    args
-//		wantErr bool
-//	}{
-//		// TODO: Add test cases.
-//	}
-//	for _, tt := range tests {
-//		t.Run(tt.name, func(t *testing.T) {
-//			mem := InMemStorage{}
-//			if err := mem.RetrySaveCounter(tt.args.in0, tt.args.id, tt.args.value); (err != nil) != tt.wantErr {
-//				t.Errorf("RetrySaveCounter() error = %v, wantErr %v", err, tt.wantErr)
-//			}
-//		})
-//	}
-//}
-//
-//func TestInMemStorage_RetrySaveGauge(t *testing.T) {
-//	type args struct {
-//		in0   context.Context
-//		id    string
-//		delta float64
-//	}
-//	tests := []struct {
-//		name    string
-//		args    args
-//		wantErr bool
-//	}{
-//		// TODO: Add test cases.
-//	}
-//	for _, tt := range tests {
-//		t.Run(tt.name, func(t *testing.T) {
-//			mem := InMemStorage{}
-//			if err := mem.RetrySaveGauge(tt.args.in0, tt.args.id, tt.args.delta); (err != nil) != tt.wantErr {
-//				t.Errorf("RetrySaveGauge() error = %v, wantErr %v", err, tt.wantErr)
-//			}
-//		})
-//	}
-//}
