@@ -13,6 +13,7 @@ var PollIntervalAgent int
 var HashKeyAgent string
 var RateLimit int
 
+// InitAgentConfig Инициализация Конфигурации для агента
 func InitAgentConfig() {
 	flag.StringVar(&HostAgent, "a", "localhost:8080", "HostServer for server")
 	flag.IntVar(&ReportIntervalAgent, "r", 10, "reportInterval for send metrics to server")

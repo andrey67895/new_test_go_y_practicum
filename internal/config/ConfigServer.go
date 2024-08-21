@@ -16,6 +16,7 @@ var PortServer string
 var DatabaseDsn string
 var HashKeyServer string
 
+// InitServerConfig Инициализация Конфигурации для сервера
 func InitServerConfig() {
 	flag.StringVar(&HostServer, "a", "localhost:8080", "HostServer for server")
 	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {

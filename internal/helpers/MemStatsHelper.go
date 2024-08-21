@@ -5,6 +5,7 @@ import (
 	"runtime"
 )
 
+// GetMemByStats получение метрики по name
 func GetMemByStats(name string) float64 {
 	var memStats runtime.MemStats
 	runtime.ReadMemStats(&memStats)

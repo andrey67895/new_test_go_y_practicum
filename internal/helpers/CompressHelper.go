@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 )
 
+// Compress сжатие информации методом gzip
 func Compress(data []byte) []byte {
 
 	var b bytes.Buffer
