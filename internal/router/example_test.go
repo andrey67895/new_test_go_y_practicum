@@ -17,28 +17,31 @@ func Example_ping() {
 	r, _ := http.NewRequest(http.MethodGet, url, nil)
 	r.Header.Add("Content-Encoding", "gzip")
 	r.Header.Add("Content-Type", "application/json")
-	_, _ = client.Do(r)
+	body, _ := client.Do(r)
+	body.Body.Close()
 }
 
-func Example_all_data() {
+func Example_allDataMain() {
 	url := "http://" + config.HostServer + "/"
 	r, _ := http.NewRequest(http.MethodGet, url, nil)
 	r.Header.Add("Content-Encoding", "gzip")
 	r.Header.Add("Content-Type", "application/json")
-	_, _ = client.Do(r)
+	body, _ := client.Do(r)
+	body.Body.Close()
 }
 
-func Example_get_data_by_path_params() {
+func Example_valuePathParam() {
 	tType := "gauge"
 	name := "NAME_METRICS"
 	url := "http://" + config.HostServer + "value/" + tType + "/" + name
 	r, _ := http.NewRequest(http.MethodGet, url, nil)
 	r.Header.Add("Content-Encoding", "gzip")
 	r.Header.Add("Content-Type", "application/json")
-	_, _ = client.Do(r)
+	body, _ := client.Do(r)
+	body.Body.Close()
 }
 
-func Example_get_data_by_json() {
+func Example_value() {
 	tJSON := model.JSONMetrics{
 		ID:    "NAME_METRICS",
 		MType: "gauge",
@@ -49,7 +52,8 @@ func Example_get_data_by_json() {
 	r, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(helpers.Compress(tModel)))
 	r.Header.Add("Content-Encoding", "gzip")
 	r.Header.Add("Content-Type", "application/json")
-	_, _ = client.Do(r)
+	body, _ := client.Do(r)
+	body.Body.Close()
 }
 
 func Example_updates() {
@@ -68,7 +72,8 @@ func Example_updates() {
 	r, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(helpers.Compress(tModel)))
 	r.Header.Add("Content-Encoding", "gzip")
 	r.Header.Add("Content-Type", "application/json")
-	_, _ = client.Do(r)
+	body, _ := client.Do(r)
+	body.Body.Close()
 }
 
 func Example_update() {
@@ -79,5 +84,6 @@ func Example_update() {
 	r, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(helpers.Compress(tModel)))
 	r.Header.Add("Content-Encoding", "gzip")
 	r.Header.Add("Content-Type", "application/json")
-	_, _ = client.Do(r)
+	body, _ := client.Do(r)
+	body.Body.Close()
 }
