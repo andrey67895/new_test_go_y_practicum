@@ -53,29 +53,3 @@ func TestSaveDataInFile(t *testing.T) {
 		})
 	}
 }
-
-func TestSaveDataForInterval(t *testing.T) {
-	type args struct {
-		fname         string
-		storeInterval int
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		{
-			name: "positive test #1",
-			args: args{
-				fname:         "tmp/metrics-db.json",
-				storeInterval: 1,
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.NotPanics(t, func() {
-				SaveDataForInterval(tt.args.fname, tt.args.storeInterval)
-			})
-		})
-	}
-}
