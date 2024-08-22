@@ -3,8 +3,6 @@ package handlers
 import (
 	"net/http"
 	"time"
-
-	"github.com/andrey67895/new_test_go_y_practicum/internal/logger"
 )
 
 type (
@@ -31,7 +29,6 @@ func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 }
 
 func WithLogging(h http.Handler) http.Handler {
-	log := logger.Log()
 	logFn := func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now().Local()
 
