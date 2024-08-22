@@ -1,3 +1,4 @@
+// Package handlers работа с логикой handlers
 package handlers
 
 import (

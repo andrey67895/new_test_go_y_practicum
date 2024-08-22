@@ -1,3 +1,4 @@
+// Package logger пакет для работы с логами
 package logger
 
 import "go.uber.org/zap"

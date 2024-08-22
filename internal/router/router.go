@@ -1,3 +1,4 @@
+// Package router... отвечает за работу с роутером
 package router
 
 import (

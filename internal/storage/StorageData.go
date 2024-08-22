@@ -1,3 +1,4 @@
+// Package storage Отвечает за общение со storage
 package storage
 
 import "context"

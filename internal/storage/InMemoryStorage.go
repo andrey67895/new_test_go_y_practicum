@@ -13,7 +13,7 @@ func (mem InMemStorage) RetrySaveGauge(_ context.Context, id string, delta float
 	return LocalNewMemStorageGauge.SetGauge(id, delta)
 }
 
-// RetrySaveGauge сохранение Counter InMemory
+// RetrySaveCounter сохранение Counter InMemory
 func (mem InMemStorage) RetrySaveCounter(_ context.Context, id string, value int64) error {
 	return LocalNewMemStorageCounter.SetCounter(id, value)
 }

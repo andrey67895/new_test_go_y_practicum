@@ -1,3 +1,4 @@
+// Package helpers функции и классы, выполняющие общую работу для других классов
 package helpers
 
 import (

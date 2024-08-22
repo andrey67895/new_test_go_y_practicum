@@ -1,3 +1,4 @@
+// Package config работа с конфиами Server и Agent
 package config
 
 import (

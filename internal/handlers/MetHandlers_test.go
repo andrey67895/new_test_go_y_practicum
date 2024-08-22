@@ -23,7 +23,6 @@ func AddChiURLParams(r *http.Request, params map[string]string) *http.Request {
 func TestSaveDataForPathParams(t *testing.T) {
 	type want struct {
 		code        int
-		response    string
 		contentType string
 	}
 	type args struct {
@@ -100,16 +99,11 @@ func TestSaveDataForPathParams(t *testing.T) {
 func TestCountValueCounter(t *testing.T) {
 	type want struct {
 		code        int
-		response    string
 		contentType string
-	}
-	type args struct {
-		key string
 	}
 	tests := []struct {
 		name string
 		want want
-		args args
 	}{
 		{
 			name: "positive test #1",
