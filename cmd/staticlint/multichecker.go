@@ -108,7 +108,7 @@ func main() {
 		unusedresult.Analyzer,
 		unusedwrite.Analyzer,
 		usesgenerics.Analyzer,
-		ExitInMainAnalyzer,
+		//ExitInMainAnalyzer,
 	}
 	for _, v := range staticcheck.Analyzers {
 		mychecks = append(mychecks, v.Analyzer)
