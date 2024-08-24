@@ -130,12 +130,15 @@ var ExitInMainAnalyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
+	const MAIN = "main"
+	const OS = "os"
+	const EXIT = "Exit"
 	isMainPkg := func(x *ast.File) bool {
-		return x.Name.Name == "main"
+		return x.Name.Name == MAIN
 	}
 
 	isMainFunc := func(x *ast.FuncDecl) bool {
-		return x.Name.Name == "main"
+		return x.Name.Name == MAIN
 	}
 
 	isOsExit := func(x *ast.SelectorExpr, isMain bool) bool {
@@ -146,7 +149,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		if !ok {
 			return false
 		}
-		if ident.Name == "os" && x.Sel.Name == "Exit" {
+		if ident.Name == OS && x.Sel.Name == EXIT {
 			pass.Reportf(ident.NamePos, "os.Exit called in main func in main package")
 			return true
 		}
