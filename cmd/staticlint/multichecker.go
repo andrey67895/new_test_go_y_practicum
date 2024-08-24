@@ -54,8 +54,8 @@ import (
 	"golang.org/x/tools/go/analysis/passes/unusedwrite"
 	"golang.org/x/tools/go/analysis/passes/usesgenerics"
 	"golang.org/x/tools/go/ast/inspector"
-	//"honnef.co/go/tools/staticcheck"
-	//	"honnef.co/go/tools/stylecheck"
+	"honnef.co/go/tools/staticcheck"
+	"honnef.co/go/tools/stylecheck"
 )
 
 func main() {
@@ -110,12 +110,12 @@ func main() {
 		usesgenerics.Analyzer,
 		ExitInMainAnalyzer,
 	}
-	//for _, v := range staticcheck.Analyzers {
-	//	mychecks = append(mychecks, v.Analyzer)
-	//}
-	//for _, v := range stylecheck.Analyzers {
-	//	mychecks = append(mychecks, v.Analyzer)
-	//}
+	for _, v := range staticcheck.Analyzers {
+		mychecks = append(mychecks, v.Analyzer)
+	}
+	for _, v := range stylecheck.Analyzers {
+		mychecks = append(mychecks, v.Analyzer)
+	}
 
 	multichecker.Main(
 		mychecks...,
