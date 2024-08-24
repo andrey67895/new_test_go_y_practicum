@@ -54,7 +54,8 @@ import (
 )
 
 func main() {
-	mychecks := []*analysis.Analyzer{
+	mychecks := make([]*analysis.Analyzer, 0, 245)
+	mychecks = []*analysis.Analyzer{
 		appends.Analyzer,
 		asmdecl.Analyzer,
 		assign.Analyzer,
