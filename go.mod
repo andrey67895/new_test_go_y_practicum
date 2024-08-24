@@ -10,7 +10,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/tools v0.24.0
-	honnef.co/go/tools v0.5.1
+	honnef.co/go/tools v0.4.7
 )
 
 require (
