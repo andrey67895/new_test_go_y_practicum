@@ -1,9 +1,10 @@
 package logger
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
-	"testing"
 )
 
 func TestLog(t *testing.T) {

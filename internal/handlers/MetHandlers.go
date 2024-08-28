@@ -5,8 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
 	"github.com/go-chi/chi/v5"
+
+	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
 )
 
 func GetAllData(iStorage storage.IStorageData) http.HandlerFunc {

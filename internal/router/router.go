@@ -4,10 +4,11 @@ package router
 import (
 	"net/http/pprof"
 
-	"github.com/andrey67895/new_test_go_y_practicum/internal/handlers"
-	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+
+	"github.com/andrey67895/new_test_go_y_practicum/internal/handlers"
+	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
 )
 
 // GetRoutersForServer инициализация всех роутеров
