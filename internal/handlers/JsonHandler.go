@@ -40,7 +40,7 @@ func SaveMetDataForJSON(iStorage storage.IStorageData) http.HandlerFunc {
 			valueMet := tModel.GetValue()
 			tErr := iStorage.RetrySaveGauge(req.Context(), nameMet, valueMet)
 			if tErr != nil {
-				log.Error(err.Error())
+				log.Error(tErr.Error())
 				return
 			}
 		case "counter":

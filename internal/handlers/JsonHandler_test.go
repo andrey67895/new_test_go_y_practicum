@@ -32,6 +32,7 @@ func TestGetPing(t *testing.T) {
 			handler(w, req)
 			res := w.Result()
 			assert.Equal(t, http.StatusOK, res.StatusCode)
+			res.Body.Close()
 		})
 	}
 }
