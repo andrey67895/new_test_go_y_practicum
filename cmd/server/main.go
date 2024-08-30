@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"path/filepath"
 	"time"
@@ -15,9 +16,16 @@ import (
 	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
 )
 
+var buildVersion string
+var buildDate string
+var buildCommit string
+
 var log = logger.Log()
 
 func main() {
+	log.Infof("Build version: %s", getValueOrNA(&buildVersion))
+	log.Infof("Build date: %s", getValueOrNA(&buildDate))
+	log.Infof("Build commit: %s", getValueOrNA(&buildCommit))
 	config.InitServerConfig()
 	var st storage.IStorageData
 	if config.DatabaseDsn != "" {
@@ -33,6 +41,14 @@ func main() {
 		}
 	}
 	log.Fatal(http.ListenAndServe(":"+config.PortServer, router.GetRoutersForServer(st)))
+}
+
+func getValueOrNA(value *string) string {
+	if value != nil && *value != "" {
+		return *value
+	} else {
+		return "N/A"
+	}
 }
 
 func RestoringDataFromFile(fname string) {

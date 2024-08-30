@@ -6,9 +6,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
 )
 
 func AddChiURLParams(r *http.Request, params map[string]string) *http.Request {

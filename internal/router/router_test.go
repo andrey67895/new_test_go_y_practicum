@@ -1,10 +1,12 @@
 package router
 
 import (
-	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
+	"testing"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
-	"testing"
+
+	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
 )
 
 func TestGetRoutersForServer(t *testing.T) {

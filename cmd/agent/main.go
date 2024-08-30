@@ -10,13 +10,18 @@ import (
 	"sync"
 	"time"
 
+	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/mem"
+
 	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/helpers"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/logger"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
-	"github.com/shirou/gopsutil/cpu"
-	"github.com/shirou/gopsutil/mem"
 )
+
+var buildVersion string
+var buildDate string
+var buildCommit string
 
 var log = logger.Log()
 var metricsName = []string{"Alloc", "BuckHashSys", "Frees", "GCCPUFraction", "GCSys", "HeapAlloc",
@@ -28,6 +33,25 @@ var metricsName = []string{"Alloc", "BuckHashSys", "Frees", "GCCPUFraction", "GC
 
 var count = model.NewCount("PollCount", 0)
 var metrics = model.NewMetrics()
+
+func main() {
+	log.Infof("Build version: %s", getValueOrNA(&buildVersion))
+	log.Infof("Build date: %s", getValueOrNA(&buildDate))
+	log.Infof("Build commit: %s", getValueOrNA(&buildCommit))
+	config.InitAgentConfig()
+	go updateMetrics(time.Duration(config.PollIntervalAgent))
+	go sendMetrics(time.Duration(config.ReportIntervalAgent), config.HostAgent)
+	server := http.Server{}
+	log.Fatal(server.ListenAndServe())
+}
+
+func getValueOrNA(value *string) string {
+	if value != nil && *value != "" {
+		return *value
+	} else {
+		return "N/A"
+	}
+}
 
 func updateMetrics(pollInterval time.Duration) {
 	for {
@@ -147,14 +171,6 @@ func sendHashKey(r *http.Request, data []byte) {
 		h.Write(hBody)
 		r.Header.Add("HashSHA256", fmt.Sprintf("%x", h.Sum(nil)))
 	}
-}
-
-func main() {
-	config.InitAgentConfig()
-	go updateMetrics(time.Duration(config.PollIntervalAgent))
-	go sendMetrics(time.Duration(config.ReportIntervalAgent), config.HostAgent)
-	server := http.Server{}
-	log.Fatal(server.ListenAndServe())
 }
 
 func getMemByGopsutil() {
