@@ -16,13 +16,12 @@ var PortServer string
 var DatabaseDsn string
 var HashKeyServer string
 
+// InitServerConfig Инициализация Конфигурации для сервера
 func InitServerConfig() {
-
 	flag.StringVar(&HostServer, "a", "localhost:8080", "HostServer for server")
 	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
 		HostServer = envRunAddr
 	}
-
 	flag.StringVar(&HashKeyServer, "k", "", "Key for hash")
 	//flag.StringVar(&DatabaseDsn, "d", fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", `localhost`, 6543, `admin`, `admin`, `hr_netology`), "DataBase dsn for server")
 	flag.StringVar(&DatabaseDsn, "d", "", "DataBase dsn for server")

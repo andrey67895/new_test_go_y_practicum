@@ -6,9 +6,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
 )
 
 func AddChiURLParams(r *http.Request, params map[string]string) *http.Request {
@@ -23,7 +24,6 @@ func AddChiURLParams(r *http.Request, params map[string]string) *http.Request {
 func TestSaveDataForPathParams(t *testing.T) {
 	type want struct {
 		code        int
-		response    string
 		contentType string
 	}
 	type args struct {
@@ -100,16 +100,11 @@ func TestSaveDataForPathParams(t *testing.T) {
 func TestCountValueCounter(t *testing.T) {
 	type want struct {
 		code        int
-		response    string
 		contentType string
-	}
-	type args struct {
-		key string
 	}
 	tests := []struct {
 		name string
 		want want
-		args args
 	}{
 		{
 			name: "positive test #1",

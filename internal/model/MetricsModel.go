@@ -6,17 +6,20 @@ import (
 	"github.com/andrey67895/new_test_go_y_practicum/internal/helpers"
 )
 
+// Metrics создание структура
 type Metrics struct {
 	mut  sync.RWMutex
 	data map[string]Gauge
 }
 
+// NewMetrics инициализация структуры для объекта Metrics
 func NewMetrics() *Metrics {
 	return &Metrics{
 		data: make(map[string]Gauge),
 	}
 }
 
+// SetDataMetricsForMap сохранение данных в Metrics
 func (e *Metrics) SetDataMetricsForMap(metricsName []string) {
 	e.mut.Lock()
 	for _, statName := range metricsName {
@@ -25,12 +28,14 @@ func (e *Metrics) SetDataMetricsForMap(metricsName []string) {
 	e.mut.Unlock()
 }
 
+// SetDataMetrics сохранение данных по ключу в Metrics
 func (e *Metrics) SetDataMetrics(key string, value Gauge) {
 	e.mut.Lock()
 	e.data[key] = value
 	e.mut.Unlock()
 }
 
+// GetDataMetrics получение всех данных из Metrics
 func (e *Metrics) GetDataMetrics() map[string]Gauge {
 	e.mut.RLock()
 	defer e.mut.RUnlock()

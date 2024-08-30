@@ -9,20 +9,22 @@ import (
 	"strings"
 	"time"
 
-	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
-	"github.com/andrey67895/new_test_go_y_practicum/internal/logger"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
-
 	_ "github.com/jackc/pgx/v5/stdlib"
+
+	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
+	"github.com/andrey67895/new_test_go_y_practicum/internal/logger"
 )
 
+// DBStorage инициализация DB Storage
 type DBStorage struct {
 	DB *sql.DB
 }
 
 var log = logger.Log()
 
+// RetrySaveGauge сохранение Gauge в базе данных
 func (db DBStorage) RetrySaveGauge(ctx context.Context, id string, delta float64) error {
 	err := db.SaveGaugeInDB(ctx, id, delta)
 	var pgErr *pgconn.PgError
@@ -44,6 +46,7 @@ func (db DBStorage) RetrySaveGauge(ctx context.Context, id string, delta float64
 	return err
 }
 
+// FindErrorInPool поиск ошибки по коду среди известных
 func FindErrorInPool(code string) bool {
 	dwarfs := []string{
 		pgerrcode.ConnectionException,
@@ -63,6 +66,7 @@ type Metrics struct {
 	Value *int64
 }
 
+// GetData получение всех данных из таблицы metrics в БД
 func (db DBStorage) GetData(ctx context.Context) (string, error) {
 	data := make([]Metrics, 0)
 
@@ -96,6 +100,7 @@ func (db DBStorage) GetData(ctx context.Context) (string, error) {
 	return dataString, nil
 }
 
+// GetCounter получение данных Counter из таблицы metrics по id в БД
 func (db DBStorage) GetCounter(ctx context.Context, id string) (int64, error) {
 	row := db.DB.QueryRowContext(ctx, "SELECT m.value as count FROM metrics m WHERE id = $1", id)
 	var value int64
@@ -103,6 +108,7 @@ func (db DBStorage) GetCounter(ctx context.Context, id string) (int64, error) {
 	return value, err
 }
 
+// GetGauge получение данных Gauge из таблицы metrics по id в БД
 func (db DBStorage) GetGauge(ctx context.Context, id string) (float64, error) {
 	row := db.DB.QueryRowContext(ctx, "SELECT m.delta as count FROM metrics m WHERE id = $1", id)
 	var delta float64
@@ -110,6 +116,7 @@ func (db DBStorage) GetGauge(ctx context.Context, id string) (float64, error) {
 	return delta, err
 }
 
+// SaveGaugeInDB сохранение данных Gauge в таблицу metrics для id в БД
 func (db DBStorage) SaveGaugeInDB(ctx context.Context, id string, delta float64) error {
 	_, err := db.DB.ExecContext(ctx, `INSERT INTO metrics(id, type, delta) values ($1,'GAUGE',$2) on conflict (id) do update set delta = $2`, id, delta)
 	if err != nil {
@@ -149,6 +156,7 @@ func (db DBStorage) InitTable(ctx context.Context) {
 	}
 }
 
+// RetrySaveCounter сохранение данных Counter с повторными попытками при неудаче в таблицу metrics для id в БД
 func (db DBStorage) RetrySaveCounter(ctx context.Context, id string, value int64) error {
 	err := db.SaveCounterInDB(ctx, id, value)
 	var pgErr *pgconn.PgError
@@ -170,6 +178,7 @@ func (db DBStorage) RetrySaveCounter(ctx context.Context, id string, value int64
 	return err
 }
 
+// SaveCounterInDB сохранение данных Counter в таблицу metrics для id в БД
 func (db DBStorage) SaveCounterInDB(ctx context.Context, id string, value int64) error {
 	_, err := db.DB.ExecContext(ctx, `INSERT INTO metrics(id, type, value) values ($1,'COUNTER',$2) on conflict (id) do update set value = $2`, id, value)
 	if err != nil {
@@ -178,6 +187,7 @@ func (db DBStorage) SaveCounterInDB(ctx context.Context, id string, value int64)
 	return err
 }
 
+// Ping проверка работоспособности и подключения к БД
 func (db DBStorage) Ping() error {
 	return db.DB.Ping()
 }

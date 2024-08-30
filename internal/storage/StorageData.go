@@ -1,7 +1,9 @@
+// Package storage Отвечает за общение со storage
 package storage
 
 import "context"
 
+// IStorageData общий интерфейс для общения со Storage
 type IStorageData interface {
 	RetrySaveGauge(ctx context.Context, id string, delta float64) error
 	RetrySaveCounter(ctx context.Context, id string, value int64) error
