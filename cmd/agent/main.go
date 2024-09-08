@@ -19,9 +19,11 @@ import (
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
 )
 
-var buildVersion string
-var buildDate string
-var buildCommit string
+var (
+    buildVersion string
+    buildDate string
+    buildCommit string
+)
 
 var log = logger.Log()
 var metricsName = []string{"Alloc", "BuckHashSys", "Frees", "GCCPUFraction", "GCSys", "HeapAlloc",
