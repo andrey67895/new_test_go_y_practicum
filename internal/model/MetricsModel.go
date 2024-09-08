@@ -8,8 +8,8 @@ import (
 
 // Metrics создание структура
 type Metrics struct {
-	mut  sync.RWMutex
 	data map[string]Gauge
+	mut  sync.RWMutex
 }
 
 // NewMetrics инициализация структуры для объекта Metrics

@@ -38,23 +38,23 @@ func SaveMetDataForJSON(iStorage storage.IStorageData) http.HandlerFunc {
 		switch typeMet {
 		case "gauge":
 			valueMet := tModel.GetValue()
-			err := iStorage.RetrySaveGauge(req.Context(), nameMet, valueMet)
-			if err != nil {
-				log.Error(err.Error())
+			tErr := iStorage.RetrySaveGauge(req.Context(), nameMet, valueMet)
+			if tErr != nil {
+				log.Error(tErr.Error())
 				return
 			}
 		case "counter":
 			valueMet := tModel.GetDelta()
-			localCounter, err := iStorage.GetCounter(req.Context(), nameMet)
-			if err != nil {
-				err := iStorage.RetrySaveCounter(req.Context(), nameMet, valueMet)
-				if err != nil {
+			localCounter, tErr := iStorage.GetCounter(req.Context(), nameMet)
+			if tErr != nil {
+				ttErr := iStorage.RetrySaveCounter(req.Context(), nameMet, valueMet)
+				if ttErr != nil {
 					return
 				}
 			} else {
 				tModel.SetDelta(localCounter + valueMet)
-				err := iStorage.RetrySaveCounter(req.Context(), nameMet, tModel.GetDelta())
-				if err != nil {
+				ttErr := iStorage.RetrySaveCounter(req.Context(), nameMet, tModel.GetDelta())
+				if ttErr != nil {
 					return
 				}
 			}

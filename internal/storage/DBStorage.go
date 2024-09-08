@@ -34,8 +34,8 @@ func (db DBStorage) RetrySaveGauge(ctx context.Context, id string, delta float64
 				timer := time.NewTimer(time.Duration(i) * time.Second)
 				t := <-timer.C
 				log.Info(t.Local())
-				err := db.SaveGaugeInDB(ctx, id, delta)
-				if errors.As(err, &pgErr) {
+				tErr := db.SaveGaugeInDB(ctx, id, delta)
+				if errors.As(tErr, &pgErr) {
 					if !FindErrorInPool(pgErr.Code) {
 						break
 					}
