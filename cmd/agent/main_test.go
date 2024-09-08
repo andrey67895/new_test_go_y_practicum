@@ -14,7 +14,7 @@ import (
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
 	handlers2 "github.com/andrey67895/new_test_go_y_practicum/internal/transport/handlers"
-	"github.com/andrey67895/new_test_go_y_practicum/internal/transport/middleware-custom"
+	"github.com/andrey67895/new_test_go_y_practicum/internal/transport/middlewares"
 )
 
 func Test_getMemByGopsutil(t *testing.T) {
@@ -58,7 +58,7 @@ func Test_sendRequestJSON(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := chi.NewRouter()
-			r.Use(middleware.RealIP, handlers2.WithLogging, middleware.Recoverer, middleware_custom.GzipHandleResponse, middleware_custom.WithSendsGzip, middleware_custom.CheckHeaderCrypto, middleware_custom.ResponseAddHeaderCrypto)
+			r.Use(middleware.RealIP, handlers2.WithLogging, middleware.Recoverer, middlewares.GzipHandleResponse, middlewares.WithSendsGzip, middlewares.CheckHeaderCrypto, middlewares.ResponseAddHeaderCrypto)
 			r.Post("/update/", handlers2.SaveMetDataForJSON(storage.InMemStorage{}))
 			server := httptest.NewServer(r)
 			url := strings.ReplaceAll(server.URL, "http://", "")
@@ -97,7 +97,7 @@ func Test_retrySendRequestJSON(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := chi.NewRouter()
-			r.Use(middleware.RealIP, handlers2.WithLogging, middleware.Recoverer, middleware_custom.GzipHandleResponse, middleware_custom.WithSendsGzip, middleware_custom.CheckHeaderCrypto, middleware_custom.ResponseAddHeaderCrypto)
+			r.Use(middleware.RealIP, handlers2.WithLogging, middleware.Recoverer, middlewares.GzipHandleResponse, middlewares.WithSendsGzip, middlewares.CheckHeaderCrypto, middlewares.ResponseAddHeaderCrypto)
 			r.Post("/update/", handlers2.SaveMetDataForJSON(storage.InMemStorage{}))
 			server := httptest.NewServer(r)
 			url := strings.ReplaceAll(server.URL, "http://", "")

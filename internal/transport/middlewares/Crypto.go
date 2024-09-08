@@ -1,5 +1,5 @@
 // Package handlers работа с логикой handlers
-package middleware_custom
+package middlewares
 
 import (
 	"bytes"
