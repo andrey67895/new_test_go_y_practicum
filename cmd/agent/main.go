@@ -25,9 +25,9 @@ import (
 )
 
 var (
-    buildVersion string
-    buildDate string
-    buildCommit string
+	buildVersion string
+	buildDate    string
+	buildCommit  string
 )
 
 var log = logger.Log()
@@ -134,7 +134,7 @@ func sendMetrics(pollInterval time.Duration, host string) {
 }
 
 func importPublicKey() *rsa.PublicKey {
-	file, err := os.ReadFile("/Users/andrejgusin/GolandProjects/new_test_go_y_practicum/rsa/yp.pub")
+	file, err := os.ReadFile(config.CryptoKeyAgent)
 	if err != nil {
 		return nil
 	}
