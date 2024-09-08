@@ -12,8 +12,8 @@ import (
 	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/logger"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
-	"github.com/andrey67895/new_test_go_y_practicum/internal/router"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
+	"github.com/andrey67895/new_test_go_y_practicum/internal/transport/router"
 )
 
 var buildVersion string

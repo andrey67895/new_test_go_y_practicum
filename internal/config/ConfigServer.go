@@ -15,6 +15,7 @@ var RestoreServer bool
 var PortServer string
 var DatabaseDsn string
 var HashKeyServer string
+var CryptoKeyServer string
 
 // InitServerConfig Инициализация Конфигурации для сервера
 func InitServerConfig() {
@@ -29,6 +30,7 @@ func InitServerConfig() {
 	flag.IntVar(&StoreIntervalServer, "i", 300, "интервал времени в секундах, по истечении которого текущие показания сервера сохраняются на диск")
 	flag.StringVar(&FileStoragePathServer, "f", "tmp/metrics-db.json", "полное имя файла, куда сохраняются текущие значения ")
 	flag.BoolVar(&RestoreServer, "r", true, "загружать или нет ранее сохранённые значения из указанного файла при старте сервера")
+	flag.StringVar(&CryptoKeyServer, "crypto-key", "", "Key for asymmetric encryption")
 	flag.Parse()
 	PortServer = strings.Split(HostServer, ":")[1]
 	if envDatabaseDsn := os.Getenv("DATABASE_DSN"); envDatabaseDsn != "" {
@@ -45,6 +47,9 @@ func InitServerConfig() {
 	}
 	if envHashKey := os.Getenv("KEY"); envHashKey != "" {
 		HashKeyServer = envHashKey
+	}
+	if envCryptoKeyServer := os.Getenv("CRYPTO_KEY"); envCryptoKeyServer != "" {
+		CryptoKeyServer = envCryptoKeyServer
 	}
 }
 

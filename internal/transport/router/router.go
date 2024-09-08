@@ -7,14 +7,15 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
-	"github.com/andrey67895/new_test_go_y_practicum/internal/handlers"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
+	"github.com/andrey67895/new_test_go_y_practicum/internal/transport/handlers"
+	"github.com/andrey67895/new_test_go_y_practicum/internal/transport/middleware-custom"
 )
 
 // GetRoutersForServer инициализация всех роутеров
 func GetRoutersForServer(iStorage storage.IStorageData) *chi.Mux {
 	r := chi.NewRouter()
-	r.Use(middleware.RealIP, handlers.WithLogging, middleware.Recoverer, handlers.GzipHandleResponse, handlers.WithSendsGzip, handlers.CheckHeaderCrypto, handlers.ResponseAddHeaderCrypto)
+	r.Use(middleware.RealIP, handlers.WithLogging, middleware.Recoverer, middleware_custom.GzipHandleResponse, middleware_custom.WithSendsGzip, middleware_custom.CheckHeaderCrypto, middleware_custom.ResponseAddHeaderCrypto, middleware_custom.CheckRSAAndDecrypt)
 	r.Post("/update/{type}/{name}/{value}", handlers.SaveDataForPathParams(iStorage))
 	r.Post("/update/", handlers.SaveMetDataForJSON(iStorage))
 	r.Post("/updates/", handlers.SaveArraysMetDataForJSON(iStorage))

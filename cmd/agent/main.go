@@ -3,10 +3,15 @@ package main
 import (
 	"bytes"
 	"crypto/hmac"
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/sha256"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
@@ -126,14 +131,53 @@ func sendMetrics(pollInterval time.Duration, host string) {
 	}
 }
 
+func importPublicKey() *rsa.PublicKey {
+	file, err := os.ReadFile("/Users/andrejgusin/GolandProjects/new_test_go_y_practicum/rsa/yp.pub")
+	if err != nil {
+		return nil
+	}
+	block, _ := pem.Decode(file)
+	if block == nil {
+		return nil
+	}
+
+	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		log.Error("Error: ", err.Error())
+		return nil
+	}
+
+	switch pub := pub.(type) {
+	case *rsa.PublicKey:
+		return pub
+	default:
+		break
+	}
+	return nil
+}
+
+func encrypt(msg []byte) []byte {
+	if config.CryptoKeyAgent != "" {
+		publicKey := importPublicKey()
+		cipherText, err := rsa.EncryptPKCS1v15(rand.Reader, publicKey, msg)
+		if err != nil {
+			log.Error("Error:", err.Error())
+		}
+		return cipherText
+	}
+	return msg
+}
+
 func sendRequestJSON(host string, tJSON model.JSONMetrics) error {
 	url := "http://" + host + "/update/"
 	tModel, _ := json.Marshal(tJSON)
 	client := &http.Client{}
+	tModel = encrypt(tModel)
 	r, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(helpers.Compress(tModel)))
 	r.Header.Add("Content-Encoding", "gzip")
 	r.Header.Add("Content-Type", "application/json")
 	sendHashKey(r, tModel)
+
 	body, err := client.Do(r)
 	if err != nil {
 		log.Error(err.Error())

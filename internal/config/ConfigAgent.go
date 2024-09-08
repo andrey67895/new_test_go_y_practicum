@@ -13,6 +13,7 @@ var ReportIntervalAgent int
 var PollIntervalAgent int
 var HashKeyAgent string
 var RateLimit int
+var CryptoKeyAgent string
 
 // InitAgentConfig Инициализация Конфигурации для агента
 func InitAgentConfig() {
@@ -21,6 +22,7 @@ func InitAgentConfig() {
 	flag.IntVar(&PollIntervalAgent, "p", 2, "pollInterval for update metrics")
 	flag.IntVar(&RateLimit, "l", 9, "RateLimit for update metrics")
 	flag.StringVar(&HashKeyAgent, "k", "", "Key for hash")
+	flag.StringVar(&CryptoKeyAgent, "crypto-key", "", "Key for asymmetric encryption")
 	flag.Parse()
 	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
 		HostAgent = envRunAddr
@@ -36,6 +38,9 @@ func InitAgentConfig() {
 	}
 	if envHashKey := os.Getenv("KEY"); envHashKey != "" {
 		HashKeyAgent = envHashKey
+	}
+	if envCryptoKeyAgent := os.Getenv("CRYPTO_KEY"); envCryptoKeyAgent != "" {
+		CryptoKeyAgent = envCryptoKeyAgent
 	}
 }
 
