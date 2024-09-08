@@ -8,14 +8,16 @@ import (
 	"strings"
 )
 
-var HostServer string
-var StoreIntervalServer int
-var FileStoragePathServer string
-var RestoreServer bool
-var PortServer string
-var DatabaseDsn string
-var HashKeyServer string
-var CryptoKeyServer string
+var (
+	HostServer            string
+	StoreIntervalServer   int
+	FileStoragePathServer string
+	RestoreServer         bool
+	PortServer            string
+	DatabaseDsn           string
+	HashKeyServer         string
+	CryptoKeyServer       string
+)
 
 // InitServerConfig Инициализация Конфигурации для сервера
 func InitServerConfig() {

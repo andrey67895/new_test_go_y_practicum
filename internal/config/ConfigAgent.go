@@ -8,12 +8,14 @@ import (
 	"strconv"
 )
 
-var HostAgent string
-var ReportIntervalAgent int
-var PollIntervalAgent int
-var HashKeyAgent string
-var RateLimit int
-var CryptoKeyAgent string
+var (
+	HostAgent           string
+	ReportIntervalAgent int
+	PollIntervalAgent   int
+	HashKeyAgent        string
+	RateLimit           int
+	CryptoKeyAgent      string
+)
 
 // InitAgentConfig Инициализация Конфигурации для агента
 func InitAgentConfig() {
