@@ -3,10 +3,13 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"syscall"
 	"time"
 
 	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
@@ -26,6 +29,8 @@ func main() {
 	log.Infof("Build version: %s", getValueOrNA(&buildVersion))
 	log.Infof("Build date: %s", getValueOrNA(&buildDate))
 	log.Infof("Build commit: %s", getValueOrNA(&buildCommit))
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
+	defer stop()
 	config.InitServerConfig()
 	var st storage.IStorageData
 	if config.DatabaseDsn != "" {
@@ -40,7 +45,21 @@ func main() {
 			go SaveDataForInterval(config.FileStoragePathServer, config.StoreIntervalServer)
 		}
 	}
-	log.Fatal(http.ListenAndServe(":"+config.PortServer, router.GetRoutersForServer(st)))
+	server := http.Server{
+		Addr:    ":" + config.PortServer,
+		Handler: router.GetRoutersForServer(st),
+	}
+	go func() {
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("listen and serve returned err: %v", err)
+		}
+	}()
+	<-ctx.Done()
+	log.Info("got interruption signal")
+	if err := server.Shutdown(context.Background()); err != nil {
+		log.Info("server shutdown returned an err: %v\n", err)
+	}
+	log.Info("final")
 }
 
 func getValueOrNA(value *string) string {
