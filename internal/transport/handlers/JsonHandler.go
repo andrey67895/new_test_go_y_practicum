@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/andrey67895/new_test_go_y_practicum/internal/logger"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
@@ -15,7 +14,6 @@ var log = logger.Log()
 
 func GetPing(iStorage storage.IStorageData) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		time.Sleep(1 * time.Minute)
 		err := iStorage.Ping()
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Ошибка ping DB: %s", err.Error()), http.StatusInternalServerError)
