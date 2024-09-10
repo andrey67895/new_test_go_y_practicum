@@ -140,7 +140,7 @@ func sendMetrics(wg *sync.WaitGroup, pollInterval time.Duration, host string) {
 				tWG.Add(1)
 				go workerRequestJSON(host, tWG, inputCh, outputCh)
 			}
-			wg.Wait()
+			tWG.Wait()
 			close(outputCh)
 		}()
 		for res := range outputCh {
