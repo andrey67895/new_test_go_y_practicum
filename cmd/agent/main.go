@@ -196,6 +196,7 @@ func sendRequestJSON(host string, tJSON model.JSONMetrics) error {
 	tModel, _ := json.Marshal(tJSON)
 	client := &http.Client{}
 	tModel = encrypt(tModel)
+	log.Info(string(tModel))
 	r, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(helpers.Compress(tModel)))
 	r.Header.Add("Content-Encoding", "gzip")
 	r.Header.Add("Content-Type", "application/json")
