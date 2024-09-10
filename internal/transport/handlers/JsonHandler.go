@@ -32,7 +32,6 @@ func SaveMetDataForJSON(iStorage storage.IStorageData) http.HandlerFunc {
 			http.Error(w, "Ошибка десериализации!", http.StatusBadRequest)
 			return
 		}
-		log.Info(string(all))
 		var tModel model.JSONMetrics
 		err = json.Unmarshal(all, &tModel)
 		if err != nil {
