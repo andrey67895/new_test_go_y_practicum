@@ -34,7 +34,6 @@ func main() {
 	config.InitServerConfig()
 	var st storage.IStorageData
 	if config.DatabaseDsn != "" {
-		ctx := context.Background()
 		st = storage.InitDB(ctx)
 	} else {
 		st = storage.InMemStorage{}
