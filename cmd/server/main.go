@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"sync"
 	"syscall"
 	"time"
 
@@ -31,6 +32,7 @@ func main() {
 	log.Infof("Build commit: %s", getValueOrNA(&buildCommit))
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	defer stop()
+	var wg sync.WaitGroup
 	config.InitServerConfig()
 	var st storage.IStorageData
 	if config.DatabaseDsn != "" {
@@ -41,7 +43,7 @@ func main() {
 			if config.RestoreServer {
 				RestoringDataFromFile(config.FileStoragePathServer)
 			}
-			go SaveDataForInterval(config.FileStoragePathServer, config.StoreIntervalServer)
+			go SaveDataForInterval(&wg, ctx, config.FileStoragePathServer, config.StoreIntervalServer)
 		}
 	}
 	server := http.Server{
@@ -118,18 +120,34 @@ func SaveData(tModel model.JSONMetrics) {
 
 }
 
-func SaveDataForInterval(fname string, storeInterval int) {
+func SaveDataForInterval(wg *sync.WaitGroup, ctx context.Context, fname string, storeInterval int) {
 	if storeInterval > 0 {
 		ticker := time.NewTicker(time.Duration(storeInterval) * time.Second)
 		for range ticker.C {
-			SaveDataInFile(fname)
-			log.Infoln("Save Data file at: ", time.Now())
+			select {
+			case <-ctx.Done():
+				log.Info("Save data finish")
+				ticker.Stop()
+				return
+			default:
+				wg.Add(1)
+				SaveDataInFile(fname)
+				log.Infoln("Save Data file at: ", time.Now())
+				wg.Done()
+			}
 		}
-
 	} else {
 		for {
-			SaveDataInFile(fname)
-			log.Infoln("Save Data file at: ", time.Now())
+			select {
+			case <-ctx.Done():
+				log.Info("Save data finish")
+				return
+			default:
+				wg.Add(1)
+				SaveDataInFile(fname)
+				log.Infoln("Save Data file at: ", time.Now())
+				wg.Done()
+			}
 		}
 	}
 
