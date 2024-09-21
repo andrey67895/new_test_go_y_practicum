@@ -8,7 +8,6 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"sync"
 	"syscall"
 	"time"
@@ -131,64 +130,10 @@ func SaveDataForInterval(wg *sync.WaitGroup, ctx context.Context, fname string, 
 				return
 			default:
 				wg.Add(1)
-				SaveDataInFile(fname)
+				storage.SaveDataInFile(fname)
 				log.Infoln("Save Data file at: ", time.Now())
 				wg.Done()
 			}
 		}
-	} else {
-		for {
-			select {
-			case <-ctx.Done():
-				log.Info("Save data finish")
-				return
-			default:
-				wg.Add(1)
-				SaveDataInFile(fname)
-				log.Infoln("Save Data file at: ", time.Now())
-				wg.Done()
-			}
-		}
-	}
-
-}
-
-func SaveDataInFile(fname string) {
-	var tModel []model.JSONMetrics
-	for k, v := range storage.LocalNewMemStorageGauge.GetData() {
-		tJSON := model.JSONMetrics{}
-		tJSON.ID = k
-		tJSON.SetValue(v)
-		tJSON.MType = "gauge"
-		tModel = append(tModel, tJSON)
-	}
-	for k, v := range storage.LocalNewMemStorageCounter.GetData() {
-		tJSON := model.JSONMetrics{}
-		tJSON.ID = k
-		tJSON.SetDelta(v)
-		tJSON.MType = "counter"
-		tModel = append(tModel, tJSON)
-	}
-	data, err := json.MarshalIndent(tModel, "", "   ")
-	if err != nil {
-		log.Error(err.Error())
-		return
-	}
-
-	err = os.MkdirAll(filepath.Dir(fname), 0666)
-	if err != nil {
-		log.Error(err.Error())
-		return
-	}
-	_, err = os.OpenFile(fname, os.O_WRONLY|os.O_CREATE, 0666)
-
-	if err != nil {
-		log.Error(err.Error())
-		return
-	}
-	err = os.WriteFile(fname, data, 0666)
-	if err != nil {
-		log.Error(err.Error())
-		return
 	}
 }
