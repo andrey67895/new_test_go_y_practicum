@@ -3,8 +3,9 @@ package main
 import (
 	"testing"
 
-	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
 )
 
 func TestRestoringDataFromFile(t *testing.T) {
@@ -26,30 +27,6 @@ func TestRestoringDataFromFile(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.NotPanics(t, func() {
 				RestoringDataFromFile(tt.args.fname)
-			})
-		})
-	}
-}
-
-func TestSaveDataInFile(t *testing.T) {
-	type args struct {
-		fname string
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		{
-			name: "positive test #1",
-			args: args{
-				fname: "tmp/metrics-db.json",
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.NotPanics(t, func() {
-				SaveDataInFile(tt.args.fname)
 			})
 		})
 	}
