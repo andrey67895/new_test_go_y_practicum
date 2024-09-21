@@ -22,7 +22,7 @@ var (
 
 // InitAgentConfig Инициализация Конфигурации для агента
 func InitAgentConfig() {
-	flag.StringVar(&HostAgent, "a", "localhost:8080", "HostServer for server")
+	flag.StringVar(&HostAgent, "a", "localhost:8123", "HostServer for server")
 	flag.IntVar(&ReportIntervalAgent, "r", 10, "reportInterval for send metrics to server")
 	flag.IntVar(&PollIntervalAgent, "p", 2, "pollInterval for update metrics")
 	flag.IntVar(&RateLimit, "l", 9, "RateLimit for update metrics")
