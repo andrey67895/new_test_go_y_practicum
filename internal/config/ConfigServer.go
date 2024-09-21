@@ -27,13 +27,13 @@ var log = logger.Log()
 
 // InitServerConfig Инициализация Конфигурации для сервера
 func InitServerConfig() {
-	flag.StringVar(&HostServer, "a", "localhost:8123", "HostServer for server")
+	flag.StringVar(&HostServer, "a", "localhost:8080", "HostServer for server")
 
 	flag.StringVar(&HashKeyServer, "k", "", "Key for hash")
 	//flag.StringVar(&DatabaseDsn, "d", fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", `localhost`, 6543, `admin`, `admin`, `hr_netology`), "DataBase dsn for server")
 	flag.StringVar(&DatabaseDsn, "d", "", "DataBase dsn for server")
 
-	flag.IntVar(&StoreIntervalServer, "i", 0, "интервал времени в секундах, по истечении которого текущие показания сервера сохраняются на диск")
+	flag.IntVar(&StoreIntervalServer, "i", 300, "интервал времени в секундах, по истечении которого текущие показания сервера сохраняются на диск")
 	flag.StringVar(&FileStoragePathServer, "f", "tmp/metrics-db.json", "полное имя файла, куда сохраняются текущие значения ")
 	flag.BoolVar(&RestoreServer, "r", true, "загружать или нет ранее сохранённые значения из указанного файла при старте сервера")
 	flag.StringVar(&CryptoKeyServer, "crypto-key", "", "Key for asymmetric encryption")
