@@ -12,6 +12,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -179,6 +180,19 @@ func importPublicKey() *rsa.PublicKey {
 	return nil
 }
 
+func identifyIP() (net.IP, error) {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return nil, fmt.Errorf("failed to identify IP addresses: %w", err)
+	}
+	for _, addr := range addrs {
+		if ipNet, ok := addr.(*net.IPNet); ok && !ipNet.IP.IsLoopback() && ipNet.IP.To4() != nil {
+			return ipNet.IP.To4(), nil
+		}
+	}
+	return nil, errors.New("ip address is not found")
+}
+
 func encrypt(msg []byte) []byte {
 	if config.CryptoKeyAgent != "" {
 		publicKey := importPublicKey()
@@ -199,6 +213,14 @@ func sendRequestJSON(host string, tJSON model.JSONMetrics) error {
 	r, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(helpers.Compress(tModel)))
 	r.Header.Add("Content-Encoding", "gzip")
 	r.Header.Add("Content-Type", "application/json")
+
+	ip, err := identifyIP()
+
+	r.Header.Add("X-Real-IP", ip.To4().String())
+
+	//TODO
+	logger.Log().Info("X-Real-IP", r.Header.Get("X-Real-IP"))
+
 	sendHashKey(r, tModel)
 
 	body, err := client.Do(r)
