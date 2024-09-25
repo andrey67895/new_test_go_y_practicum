@@ -246,7 +246,6 @@ func retrySendRequestJSON(host string, tJSON model.JSONMetrics) error {
 			log.Info(t.Local())
 			err = sendRequestJSON(host, tJSON)
 			if err == nil {
-				log.Error(err)
 				break
 			}
 		}
