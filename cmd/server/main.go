@@ -3,17 +3,20 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
-	"path/filepath"
+	"os/signal"
+	"sync"
+	"syscall"
 	"time"
 
 	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/logger"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
-	"github.com/andrey67895/new_test_go_y_practicum/internal/router"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
+	"github.com/andrey67895/new_test_go_y_practicum/internal/transport/router"
 )
 
 var buildVersion string
@@ -26,10 +29,12 @@ func main() {
 	log.Infof("Build version: %s", getValueOrNA(&buildVersion))
 	log.Infof("Build date: %s", getValueOrNA(&buildDate))
 	log.Infof("Build commit: %s", getValueOrNA(&buildCommit))
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
+	defer stop()
+	var wg sync.WaitGroup
 	config.InitServerConfig()
 	var st storage.IStorageData
 	if config.DatabaseDsn != "" {
-		ctx := context.Background()
 		st = storage.InitDB(ctx)
 	} else {
 		st = storage.InMemStorage{}
@@ -37,10 +42,24 @@ func main() {
 			if config.RestoreServer {
 				RestoringDataFromFile(config.FileStoragePathServer)
 			}
-			go SaveDataForInterval(config.FileStoragePathServer, config.StoreIntervalServer)
+			go SaveDataForInterval(&wg, ctx, config.FileStoragePathServer, config.StoreIntervalServer)
 		}
 	}
-	log.Fatal(http.ListenAndServe(":"+config.PortServer, router.GetRoutersForServer(st)))
+	server := http.Server{
+		Addr:    ":" + config.PortServer,
+		Handler: router.GetRoutersForServer(st),
+	}
+	go func() {
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("listen and serve returned err: %v", err)
+		}
+	}()
+	<-ctx.Done()
+	log.Info("got interruption signal")
+	if err := server.Shutdown(context.Background()); err != nil {
+		log.Info("server shutdown returned an err: %v\n", err)
+	}
+	log.Info("final")
 }
 
 func getValueOrNA(value *string) string {
@@ -100,59 +119,21 @@ func SaveData(tModel model.JSONMetrics) {
 
 }
 
-func SaveDataForInterval(fname string, storeInterval int) {
+func SaveDataForInterval(wg *sync.WaitGroup, ctx context.Context, fname string, storeInterval int) {
 	if storeInterval > 0 {
 		ticker := time.NewTicker(time.Duration(storeInterval) * time.Second)
 		for range ticker.C {
-			SaveDataInFile(fname)
-			log.Infoln("Save Data file at: ", time.Now())
+			select {
+			case <-ctx.Done():
+				log.Info("Save data finish")
+				ticker.Stop()
+				return
+			default:
+				wg.Add(1)
+				storage.SaveDataInFile(fname)
+				log.Infoln("Save Data file at: ", time.Now())
+				wg.Done()
+			}
 		}
-
-	} else {
-		for {
-			SaveDataInFile(fname)
-			log.Infoln("Save Data file at: ", time.Now())
-		}
-	}
-
-}
-
-func SaveDataInFile(fname string) {
-	var tModel []model.JSONMetrics
-	for k, v := range storage.LocalNewMemStorageGauge.GetData() {
-		tJSON := model.JSONMetrics{}
-		tJSON.ID = k
-		tJSON.SetValue(v)
-		tJSON.MType = "gauge"
-		tModel = append(tModel, tJSON)
-	}
-	for k, v := range storage.LocalNewMemStorageCounter.GetData() {
-		tJSON := model.JSONMetrics{}
-		tJSON.ID = k
-		tJSON.SetDelta(v)
-		tJSON.MType = "counter"
-		tModel = append(tModel, tJSON)
-	}
-	data, err := json.MarshalIndent(tModel, "", "   ")
-	if err != nil {
-		log.Error(err.Error())
-		return
-	}
-
-	err = os.MkdirAll(filepath.Dir(fname), 0666)
-	if err != nil {
-		log.Error(err.Error())
-		return
-	}
-	_, err = os.OpenFile(fname, os.O_WRONLY|os.O_CREATE, 0666)
-
-	if err != nil {
-		log.Error(err.Error())
-		return
-	}
-	err = os.WriteFile(fname, data, 0666)
-	if err != nil {
-		log.Error(err.Error())
-		return
 	}
 }

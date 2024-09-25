@@ -2,12 +2,21 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"crypto/hmac"
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/sha256"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
+	"errors"
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/shirou/gopsutil/cpu"
@@ -20,9 +29,9 @@ import (
 )
 
 var (
-    buildVersion string
-    buildDate string
-    buildCommit string
+	buildVersion string
+	buildDate    string
+	buildCommit  string
 )
 
 var log = logger.Log()
@@ -40,11 +49,26 @@ func main() {
 	log.Infof("Build version: %s", getValueOrNA(&buildVersion))
 	log.Infof("Build date: %s", getValueOrNA(&buildDate))
 	log.Infof("Build commit: %s", getValueOrNA(&buildCommit))
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
+	defer stop()
+	var wg sync.WaitGroup
+
 	config.InitAgentConfig()
 	go updateMetrics(time.Duration(config.PollIntervalAgent))
-	go sendMetrics(time.Duration(config.ReportIntervalAgent), config.HostAgent)
+	go sendMetrics(&wg, time.Duration(config.ReportIntervalAgent), config.HostAgent)
 	server := http.Server{}
-	log.Fatal(server.ListenAndServe())
+	go func() {
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("listen and serve returned err: %v", err)
+		}
+	}()
+
+	<-ctx.Done()
+	log.Info("got interruption signal")
+	if err := server.Shutdown(context.Background()); err != nil {
+		log.Info("server shutdown returned an err: %v\n", err)
+	}
+	log.Info("final")
 }
 
 func getValueOrNA(value *string) string {
@@ -81,8 +105,9 @@ func workerRequestJSON(host string, wg *sync.WaitGroup, inCh <-chan model.JSONMe
 	}
 }
 
-func sendMetrics(pollInterval time.Duration, host string) {
+func sendMetrics(wg *sync.WaitGroup, pollInterval time.Duration, host string) {
 	for {
+		wg.Add(1)
 		time.Sleep(pollInterval * time.Second)
 
 		var JSONMetricsList []model.JSONMetrics
@@ -102,7 +127,7 @@ func sendMetrics(pollInterval time.Duration, host string) {
 
 		inputCh := make(chan model.JSONMetrics)
 		outputCh := make(chan error)
-		wg := &sync.WaitGroup{}
+		tWG := &sync.WaitGroup{}
 
 		go func() {
 			defer close(inputCh)
@@ -112,10 +137,10 @@ func sendMetrics(pollInterval time.Duration, host string) {
 		}()
 		go func() {
 			for i := 0; i < config.RateLimit; i++ {
-				wg.Add(1)
-				go workerRequestJSON(host, wg, inputCh, outputCh)
+				tWG.Add(1)
+				go workerRequestJSON(host, tWG, inputCh, outputCh)
 			}
-			wg.Wait()
+			tWG.Wait()
 			close(outputCh)
 		}()
 		for res := range outputCh {
@@ -125,17 +150,57 @@ func sendMetrics(pollInterval time.Duration, host string) {
 			}
 		}
 		count.ClearCount()
+		wg.Done()
 	}
+}
+
+func importPublicKey() *rsa.PublicKey {
+	file, err := os.ReadFile(config.CryptoKeyAgent)
+	if err != nil {
+		return nil
+	}
+	block, _ := pem.Decode(file)
+	if block == nil {
+		return nil
+	}
+
+	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		log.Error("Error: ", err.Error())
+		return nil
+	}
+
+	switch pub := pub.(type) {
+	case *rsa.PublicKey:
+		return pub
+	default:
+		break
+	}
+	return nil
+}
+
+func encrypt(msg []byte) []byte {
+	if config.CryptoKeyAgent != "" {
+		publicKey := importPublicKey()
+		cipherText, err := rsa.EncryptPKCS1v15(rand.Reader, publicKey, msg)
+		if err != nil {
+			log.Error("Error:", err.Error())
+		}
+		return cipherText
+	}
+	return msg
 }
 
 func sendRequestJSON(host string, tJSON model.JSONMetrics) error {
 	url := "http://" + host + "/update/"
 	tModel, _ := json.Marshal(tJSON)
 	client := &http.Client{}
+	tModel = encrypt(tModel)
 	r, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(helpers.Compress(tModel)))
 	r.Header.Add("Content-Encoding", "gzip")
 	r.Header.Add("Content-Type", "application/json")
 	sendHashKey(r, tModel)
+
 	body, err := client.Do(r)
 	if err != nil {
 		log.Error(err.Error())

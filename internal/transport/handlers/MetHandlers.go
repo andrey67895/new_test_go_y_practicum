@@ -99,7 +99,6 @@ func SaveDataForPathParams(iStorage storage.IStorageData) http.HandlerFunc {
 			http.Error(w, "Неверный тип метрики! Допустимые значения: gauge, counter", http.StatusBadRequest)
 			return
 		}
-
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
 	}

@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/andrey67895/new_test_go_y_practicum/internal/logger"
@@ -26,8 +27,13 @@ func GetPing(iStorage storage.IStorageData) http.HandlerFunc {
 func SaveMetDataForJSON(iStorage storage.IStorageData) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
+		all, err := io.ReadAll(req.Body)
+		if err != nil {
+			http.Error(w, "Ошибка десериализации!", http.StatusBadRequest)
+			return
+		}
 		var tModel model.JSONMetrics
-		err := json.NewDecoder(req.Body).Decode(&tModel)
+		err = json.Unmarshal(all, &tModel)
 		if err != nil {
 			log.Error(err.Error())
 			http.Error(w, "Ошибка десериализации!", http.StatusBadRequest)
