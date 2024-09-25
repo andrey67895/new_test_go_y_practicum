@@ -16,8 +16,10 @@ func (mem InMemStorage) RetrySaveGauge(_ context.Context, id string, delta float
 		return err
 	}
 	if config.FileStoragePathServer != "" {
-		if err := SaveDataInFile(config.FileStoragePathServer); err != nil {
-			return err
+		if config.StoreIntervalServer == 0 {
+			if err := SaveDataInFile(config.FileStoragePathServer); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -29,8 +31,10 @@ func (mem InMemStorage) RetrySaveCounter(_ context.Context, id string, value int
 		return err
 	}
 	if config.FileStoragePathServer != "" {
-		if err := SaveDataInFile(config.FileStoragePathServer); err != nil {
-			return err
+		if config.StoreIntervalServer == 0 {
+			if err := SaveDataInFile(config.FileStoragePathServer); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
