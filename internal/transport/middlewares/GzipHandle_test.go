@@ -14,7 +14,7 @@ import (
 )
 
 func TestWithSendsGzip(t *testing.T) {
-	type TestJson struct {
+	type TestJSON struct {
 		Test string `json:"test,omitempty"`
 	}
 	tests := []struct {
@@ -32,7 +32,7 @@ func TestWithSendsGzip(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			b, _ := json.Marshal(TestJson{Test: "test"})
+			b, _ := json.Marshal(TestJSON{Test: "test"})
 
 			var req *http.Request
 

@@ -213,10 +213,12 @@ func sendRequestJSON(host string, tJSON model.JSONMetrics) error {
 	r, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(helpers.Compress(tModel)))
 	r.Header.Add("Content-Encoding", "gzip")
 	r.Header.Add("Content-Type", "application/json")
-
 	ip, err := identifyIP()
-
-	r.Header.Add("X-Real-IP", ip.To4().String())
+	if err != nil {
+		log.Error(err.Error())
+	} else {
+		r.Header.Add("X-Real-IP", ip.To4().String())
+	}
 
 	sendHashKey(r, tModel)
 
