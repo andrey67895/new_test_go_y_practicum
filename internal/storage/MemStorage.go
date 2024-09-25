@@ -1,8 +1,13 @@
 package storage
 
 import (
+	"encoding/json"
 	"errors"
+	"os"
+	"path/filepath"
 	"sync"
+
+	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
 )
 
 // LocalNewMemStorageGauge глобавльная переменная для хранилища данных для Storage в формате Gauge
@@ -94,4 +99,45 @@ func NewMemStorageCounter() *MemStorageCounter {
 	return &MemStorageCounter{
 		data: make(map[string]int64),
 	}
+}
+
+func SaveDataInFile(fname string) error {
+	var tModel []model.JSONMetrics
+	for k, v := range LocalNewMemStorageGauge.GetData() {
+		tJSON := model.JSONMetrics{}
+		tJSON.ID = k
+		tJSON.SetValue(v)
+		tJSON.MType = "gauge"
+		tModel = append(tModel, tJSON)
+	}
+	for k, v := range LocalNewMemStorageCounter.GetData() {
+		tJSON := model.JSONMetrics{}
+		tJSON.ID = k
+		tJSON.SetDelta(v)
+		tJSON.MType = "counter"
+		tModel = append(tModel, tJSON)
+	}
+	data, err := json.MarshalIndent(tModel, "", "   ")
+	if err != nil {
+		log.Error(err.Error())
+		return err
+	}
+
+	err = os.MkdirAll(filepath.Dir(fname), 0666)
+	if err != nil {
+		log.Error(err.Error())
+		return err
+	}
+	_, err = os.OpenFile(fname, os.O_WRONLY|os.O_CREATE, 0666)
+
+	if err != nil {
+		log.Error(err.Error())
+		return err
+	}
+	err = os.WriteFile(fname, data, 0666)
+	if err != nil {
+		log.Error(err.Error())
+		return err
+	}
+	return nil
 }
