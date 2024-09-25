@@ -15,7 +15,7 @@ import (
 // GetRoutersForServer инициализация всех роутеров
 func GetRoutersForServer(iStorage storage.IStorageData) *chi.Mux {
 	r := chi.NewRouter()
-	r.Use(middleware.RealIP, middlewares.WithLogging, middleware.Recoverer, middlewares.GzipHandleResponse, middlewares.WithSendsGzip, middlewares.CheckHeaderCrypto, middlewares.ResponseAddHeaderCrypto, middlewares.CheckRSAAndDecrypt)
+	r.Use(middlewares.WithLogging, middleware.Recoverer, middlewares.RealIP, middlewares.GzipHandleResponse, middlewares.WithSendsGzip, middlewares.CheckHeaderCrypto, middlewares.ResponseAddHeaderCrypto, middlewares.CheckRSAAndDecrypt)
 	r.Post("/update/{type}/{name}/{value}", handlers.SaveDataForPathParams(iStorage))
 	r.Post("/update/", handlers.SaveMetDataForJSON(iStorage))
 	r.Post("/updates/", handlers.SaveArraysMetDataForJSON(iStorage))
