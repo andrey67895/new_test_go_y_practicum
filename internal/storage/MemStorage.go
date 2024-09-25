@@ -126,18 +126,15 @@ func SaveDataInFile(fname string) error {
 	err = os.MkdirAll(filepath.Dir(fname), 0666)
 	if err != nil {
 		log.Error(err.Error())
-		return err
 	}
 	_, err = os.OpenFile(fname, os.O_WRONLY|os.O_CREATE, 0666)
 
 	if err != nil {
 		log.Error(err.Error())
-		return err
 	}
 	err = os.WriteFile(fname, data, 0666)
 	if err != nil {
 		log.Error(err.Error())
-		return err
 	}
 	return nil
 }

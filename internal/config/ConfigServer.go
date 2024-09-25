@@ -21,6 +21,7 @@ var (
 	HashKeyServer         string
 	CryptoKeyServer       string
 	serverConfig          string
+	TrustedSubnet         string
 )
 
 var log = logger.Log()
@@ -28,7 +29,7 @@ var log = logger.Log()
 // InitServerConfig Инициализация Конфигурации для сервера
 func InitServerConfig() {
 	flag.StringVar(&HostServer, "a", "localhost:8080", "HostServer for server")
-
+	flag.StringVar(&TrustedSubnet, "t", "", "TrustedSubnet agent for server")
 	flag.StringVar(&HashKeyServer, "k", "", "Key for hash")
 	//flag.StringVar(&DatabaseDsn, "d", fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", `localhost`, 6543, `admin`, `admin`, `hr_netology`), "DataBase dsn for server")
 	flag.StringVar(&DatabaseDsn, "d", "", "DataBase dsn for server")
@@ -57,6 +58,11 @@ func InitServerConfig() {
 			log.Error("Ошибка формирования конфига json: ", err)
 			configIt = false
 		}
+	}
+	if envTrustedSubnet := os.Getenv("TRUSTED_SUBNET"); envTrustedSubnet != "" {
+		TrustedSubnet = envTrustedSubnet
+	} else if configIt {
+		TrustedSubnet = config.Address
 	}
 	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
 		HostServer = envRunAddr
