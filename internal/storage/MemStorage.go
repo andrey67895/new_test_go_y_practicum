@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
 )
 
@@ -123,21 +124,20 @@ func SaveDataInFile(fname string) error {
 		return err
 	}
 
-	err = os.MkdirAll(filepath.Dir(fname), 0666)
-	if err != nil {
-		log.Error(err.Error())
-		return err
-	}
-	_, err = os.OpenFile(fname, os.O_WRONLY|os.O_CREATE, 0666)
+	if config.StoreIntervalServer == 0 {
+		err = os.MkdirAll(filepath.Dir(fname), 0666)
+		if err != nil {
+			log.Error(err.Error())
+		}
+		_, err = os.OpenFile(fname, os.O_WRONLY|os.O_CREATE, 0666)
 
-	if err != nil {
-		log.Error(err.Error())
-		return err
-	}
-	err = os.WriteFile(fname, data, 0666)
-	if err != nil {
-		log.Error(err.Error())
-		return err
+		if err != nil {
+			log.Error(err.Error())
+		}
+		err = os.WriteFile(fname, data, 0666)
+		if err != nil {
+			log.Error(err.Error())
+		}
 	}
 	return nil
 }

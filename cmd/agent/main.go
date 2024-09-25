@@ -218,9 +218,6 @@ func sendRequestJSON(host string, tJSON model.JSONMetrics) error {
 
 	r.Header.Add("X-Real-IP", ip.To4().String())
 
-	//TODO
-	logger.Log().Info("X-Real-IP", r.Header.Get("X-Real-IP"))
-
 	sendHashKey(r, tModel)
 
 	body, err := client.Do(r)
@@ -240,12 +237,14 @@ func sendRequestJSON(host string, tJSON model.JSONMetrics) error {
 func retrySendRequestJSON(host string, tJSON model.JSONMetrics) error {
 	err := sendRequestJSON(host, tJSON)
 	if err != nil {
+		log.Error(err.Error())
 		for i := 1; i <= 5; i = i + 2 {
 			timer := time.NewTimer(time.Duration(i) * time.Second)
 			t := <-timer.C
 			log.Info(t.Local())
 			err = sendRequestJSON(host, tJSON)
 			if err == nil {
+				log.Error(err)
 				break
 			}
 		}
