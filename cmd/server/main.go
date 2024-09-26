@@ -39,10 +39,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// создаём gRPC-сервер без зарегистрированной службы
 	s := grpc.NewServer()
-	// регистрируем сервис
-
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	defer stop()
 	var wg sync.WaitGroup

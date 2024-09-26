@@ -19,14 +19,20 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	MetricsService_UpdateMetrics_FullMethodName = "/metrics.MetricsService/UpdateMetrics"
+	MetricsService_UpdateMetrics_FullMethodName        = "/metrics.MetricsService/UpdateMetrics"
+	MetricsService_GetPing_FullMethodName              = "/metrics.MetricsService/GetPing"
+	MetricsService_GetData_FullMethodName              = "/metrics.MetricsService/GetData"
+	MetricsService_GetDataByTypeAndName_FullMethodName = "/metrics.MetricsService/GetDataByTypeAndName"
 )
 
 // MetricsServiceClient is the client API for MetricsService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MetricsServiceClient interface {
-	UpdateMetrics(ctx context.Context, in *MetricsRequest, opts ...grpc.CallOption) (*MetricsResponse, error)
+	UpdateMetrics(ctx context.Context, in *UpdateMetricsRequest, opts ...grpc.CallOption) (*UpdateMetricsResponse, error)
+	GetPing(ctx context.Context, in *Ping, opts ...grpc.CallOption) (*Ping, error)
+	GetData(ctx context.Context, in *GetDataRequest, opts ...grpc.CallOption) (*GetDataResponse, error)
+	GetDataByTypeAndName(ctx context.Context, in *GetDataByTypeAndNameRequest, opts ...grpc.CallOption) (*GetDataByTypeAndNameResponse, error)
 }
 
 type metricsServiceClient struct {
@@ -37,10 +43,40 @@ func NewMetricsServiceClient(cc grpc.ClientConnInterface) MetricsServiceClient {
 	return &metricsServiceClient{cc}
 }
 
-func (c *metricsServiceClient) UpdateMetrics(ctx context.Context, in *MetricsRequest, opts ...grpc.CallOption) (*MetricsResponse, error) {
+func (c *metricsServiceClient) UpdateMetrics(ctx context.Context, in *UpdateMetricsRequest, opts ...grpc.CallOption) (*UpdateMetricsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(MetricsResponse)
+	out := new(UpdateMetricsResponse)
 	err := c.cc.Invoke(ctx, MetricsService_UpdateMetrics_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *metricsServiceClient) GetPing(ctx context.Context, in *Ping, opts ...grpc.CallOption) (*Ping, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Ping)
+	err := c.cc.Invoke(ctx, MetricsService_GetPing_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *metricsServiceClient) GetData(ctx context.Context, in *GetDataRequest, opts ...grpc.CallOption) (*GetDataResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetDataResponse)
+	err := c.cc.Invoke(ctx, MetricsService_GetData_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *metricsServiceClient) GetDataByTypeAndName(ctx context.Context, in *GetDataByTypeAndNameRequest, opts ...grpc.CallOption) (*GetDataByTypeAndNameResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetDataByTypeAndNameResponse)
+	err := c.cc.Invoke(ctx, MetricsService_GetDataByTypeAndName_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +87,10 @@ func (c *metricsServiceClient) UpdateMetrics(ctx context.Context, in *MetricsReq
 // All implementations must embed UnimplementedMetricsServiceServer
 // for forward compatibility.
 type MetricsServiceServer interface {
-	UpdateMetrics(context.Context, *MetricsRequest) (*MetricsResponse, error)
+	UpdateMetrics(context.Context, *UpdateMetricsRequest) (*UpdateMetricsResponse, error)
+	GetPing(context.Context, *Ping) (*Ping, error)
+	GetData(context.Context, *GetDataRequest) (*GetDataResponse, error)
+	GetDataByTypeAndName(context.Context, *GetDataByTypeAndNameRequest) (*GetDataByTypeAndNameResponse, error)
 	mustEmbedUnimplementedMetricsServiceServer()
 }
 
@@ -62,8 +101,17 @@ type MetricsServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedMetricsServiceServer struct{}
 
-func (UnimplementedMetricsServiceServer) UpdateMetrics(context.Context, *MetricsRequest) (*MetricsResponse, error) {
+func (UnimplementedMetricsServiceServer) UpdateMetrics(context.Context, *UpdateMetricsRequest) (*UpdateMetricsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateMetrics not implemented")
+}
+func (UnimplementedMetricsServiceServer) GetPing(context.Context, *Ping) (*Ping, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPing not implemented")
+}
+func (UnimplementedMetricsServiceServer) GetData(context.Context, *GetDataRequest) (*GetDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetData not implemented")
+}
+func (UnimplementedMetricsServiceServer) GetDataByTypeAndName(context.Context, *GetDataByTypeAndNameRequest) (*GetDataByTypeAndNameResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDataByTypeAndName not implemented")
 }
 func (UnimplementedMetricsServiceServer) mustEmbedUnimplementedMetricsServiceServer() {}
 func (UnimplementedMetricsServiceServer) testEmbeddedByValue()                        {}
@@ -87,7 +135,7 @@ func RegisterMetricsServiceServer(s grpc.ServiceRegistrar, srv MetricsServiceSer
 }
 
 func _MetricsService_UpdateMetrics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MetricsRequest)
+	in := new(UpdateMetricsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -99,7 +147,61 @@ func _MetricsService_UpdateMetrics_Handler(srv interface{}, ctx context.Context,
 		FullMethod: MetricsService_UpdateMetrics_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetricsServiceServer).UpdateMetrics(ctx, req.(*MetricsRequest))
+		return srv.(MetricsServiceServer).UpdateMetrics(ctx, req.(*UpdateMetricsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MetricsService_GetPing_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Ping)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MetricsServiceServer).GetPing(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MetricsService_GetPing_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MetricsServiceServer).GetPing(ctx, req.(*Ping))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MetricsService_GetData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MetricsServiceServer).GetData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MetricsService_GetData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MetricsServiceServer).GetData(ctx, req.(*GetDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MetricsService_GetDataByTypeAndName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDataByTypeAndNameRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MetricsServiceServer).GetDataByTypeAndName(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MetricsService_GetDataByTypeAndName_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MetricsServiceServer).GetDataByTypeAndName(ctx, req.(*GetDataByTypeAndNameRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -114,6 +216,18 @@ var MetricsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateMetrics",
 			Handler:    _MetricsService_UpdateMetrics_Handler,
+		},
+		{
+			MethodName: "GetPing",
+			Handler:    _MetricsService_GetPing_Handler,
+		},
+		{
+			MethodName: "GetData",
+			Handler:    _MetricsService_GetData_Handler,
+		},
+		{
+			MethodName: "GetDataByTypeAndName",
+			Handler:    _MetricsService_GetDataByTypeAndName_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

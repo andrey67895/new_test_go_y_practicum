@@ -229,7 +229,7 @@ func getInt64OrNull(t *int64) int64 {
 }
 
 func sendRequestJSON(client pb.MetricsServiceClient, tJSON model.JSONMetrics, ctx context.Context) error {
-	req := pb.MetricsRequest{
+	req := pb.UpdateMetricsRequest{
 		Id:    tJSON.ID,
 		Delta: getInt64OrNull(tJSON.Delta),
 		Value: getFloat64OrNull(tJSON.Value),
