@@ -26,7 +26,7 @@ func (s *MetricsServer) UpdateMetrics(ctx context.Context, req *pb.MetricsReques
 	var response pb.MetricsResponse
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
-		return nil, status.Errorf(codes.DataLoss, "failed to get metadata")
+		return nil, status.Error(codes.DataLoss, "failed to get metadata")
 	}
 	for s2, v := range md {
 		log.Info(s2, " ", v)
@@ -34,14 +34,14 @@ func (s *MetricsServer) UpdateMetrics(ctx context.Context, req *pb.MetricsReques
 	if config.TrustedSubnet != "" {
 		xrip := md["x-real-ip"]
 		if len(xrip) == 0 {
-			return nil, status.Errorf(codes.InvalidArgument, "missing 'X-Real-IP' header")
+			return nil, status.Error(codes.InvalidArgument, "missing 'X-Real-IP' header")
 		} else {
 			ip := net.ParseIP(xrip[0])
 			ones, _ := ip.DefaultMask().Size()
 			_, i, _ := net.ParseCIDR(fmt.Sprintf("%s/%d", ip.To4(), ones))
 			mask := i.String()
 			if mask != config.TrustedSubnet {
-				return nil, status.Errorf(codes.PermissionDenied, "deny")
+				return nil, status.Error(codes.PermissionDenied, "deny")
 			}
 		}
 	}
@@ -54,7 +54,7 @@ func (s *MetricsServer) UpdateMetrics(ctx context.Context, req *pb.MetricsReques
 		tErr := iStorage.RetrySaveGauge(ctx, nameMet, valueMet)
 		if tErr != nil {
 			log.Error(tErr.Error())
-			return nil, status.Errorf(codes.Unavailable, tErr.Error())
+			return nil, status.Error(codes.Unavailable, tErr.Error())
 		}
 	case "counter":
 		valueMet := req.GetDelta()
@@ -63,19 +63,19 @@ func (s *MetricsServer) UpdateMetrics(ctx context.Context, req *pb.MetricsReques
 			ttErr := iStorage.RetrySaveCounter(ctx, nameMet, valueMet)
 			if ttErr != nil {
 				log.Error(ttErr.Error())
-				return nil, status.Errorf(codes.Unavailable, ttErr.Error())
+				return nil, status.Error(codes.Unavailable, ttErr.Error())
 			}
 		} else {
 			ttErr := iStorage.RetrySaveCounter(ctx, nameMet, localCounter+valueMet)
 			if ttErr != nil {
 				log.Error(ttErr.Error())
-				return nil, status.Errorf(codes.Unavailable, ttErr.Error())
+				return nil, status.Error(codes.Unavailable, ttErr.Error())
 			}
 		}
 	default:
 		err := fmt.Errorf("неверный тип метрики! Допустимые значения: gauge, counter")
 		log.Error(err.Error())
-		return nil, status.Errorf(codes.Unavailable, err.Error())
+		return nil, status.Error(codes.Unavailable, err.Error())
 	}
 	return &response, nil
 }
