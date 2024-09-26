@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"net"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -12,11 +13,15 @@ import (
 	"syscall"
 	"time"
 
+	"google.golang.org/grpc"
+
 	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/logger"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
+	"github.com/andrey67895/new_test_go_y_practicum/internal/service"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/storage"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/transport/router"
+	pb "github.com/andrey67895/new_test_go_y_practicum/proto"
 )
 
 var buildVersion string
@@ -29,6 +34,15 @@ func main() {
 	log.Infof("Build version: %s", getValueOrNA(&buildVersion))
 	log.Infof("Build date: %s", getValueOrNA(&buildDate))
 	log.Infof("Build commit: %s", getValueOrNA(&buildCommit))
+
+	listen, err := net.Listen("tcp", ":8081")
+	if err != nil {
+		log.Fatal(err)
+	}
+	// создаём gRPC-сервер без зарегистрированной службы
+	s := grpc.NewServer()
+	// регистрируем сервис
+
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	defer stop()
 	var wg sync.WaitGroup
@@ -45,10 +59,19 @@ func main() {
 			go SaveDataForInterval(&wg, ctx, config.FileStoragePathServer, config.StoreIntervalServer)
 		}
 	}
+	pb.RegisterMetricsServiceServer(s, &service.MetricsServer{
+		IStorage: st,
+	})
+
 	server := http.Server{
 		Addr:    ":" + config.PortServer,
 		Handler: router.GetRoutersForServer(st),
 	}
+	go func() {
+		if err := s.Serve(listen); err != nil {
+			log.Fatal("listen and serve returned err: %v", err)
+		}
+	}()
 	go func() {
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("listen and serve returned err: %v", err)
@@ -56,6 +79,7 @@ func main() {
 	}()
 	<-ctx.Done()
 	log.Info("got interruption signal")
+	s.GracefulStop()
 	if err := server.Shutdown(context.Background()); err != nil {
 		log.Info("server shutdown returned an err: %v\n", err)
 	}

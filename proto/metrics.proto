@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package metrics;
+
+
+option go_package = "metrics/proto";
+
+message MetricsRequest {
+  string id = 1;  // запрос
+  int64 delta  = 2;  // номер страницы
+  double value = 3;  // количество записей
+  string type = 4;  // количество записей
+}
+
+message MetricsResponse {}
+
+service MetricsService {
+  rpc UpdateMetrics(MetricsRequest) returns (MetricsResponse);
+}
