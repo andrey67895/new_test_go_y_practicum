@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package metrics;
+
+
+option go_package = "metrics/proto";
+
+message UpdateMetricsRequest {
+  string id = 1;
+  int64 delta  = 2;
+  double value = 3;
+  string type = 4;
+}
+
+message GetDataRequest {}
+
+message GetDataResponse {
+  string data = 1;
+}
+
+message UpdateMetricsResponse {}
+
+message Ping{}
+
+message GetDataByTypeAndNameRequest {
+  string id = 1;
+  string type = 2;
+}
+message GetDataByTypeAndNameResponse {
+  string id = 1;
+  int64 delta  = 2;
+  double value = 3;
+  string type = 4;
+}
+
+service MetricsService {
+  rpc UpdateMetrics(UpdateMetricsRequest) returns (UpdateMetricsResponse);
+  rpc GetPing(Ping) returns (Ping);
+  rpc GetData(GetDataRequest) returns (GetDataResponse);
+  rpc GetDataByTypeAndName(GetDataByTypeAndNameRequest) returns (GetDataByTypeAndNameResponse);
+}

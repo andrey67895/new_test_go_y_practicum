@@ -8,10 +8,10 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
-	"encoding/json"
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -21,11 +21,14 @@ import (
 
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/mem"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 
 	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
-	"github.com/andrey67895/new_test_go_y_practicum/internal/helpers"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/logger"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
+	pb "github.com/andrey67895/new_test_go_y_practicum/proto"
 )
 
 var (
@@ -53,9 +56,16 @@ func main() {
 	defer stop()
 	var wg sync.WaitGroup
 
+	conn, err := grpc.NewClient(":8081", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+	client := pb.NewMetricsServiceClient(conn)
+
 	config.InitAgentConfig()
 	go updateMetrics(time.Duration(config.PollIntervalAgent))
-	go sendMetrics(&wg, time.Duration(config.ReportIntervalAgent), config.HostAgent)
+	go sendMetrics(ctx, &wg, time.Duration(config.ReportIntervalAgent), client)
 	server := http.Server{}
 	go func() {
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
@@ -97,15 +107,15 @@ func updateMetrics(pollInterval time.Duration) {
 	}
 }
 
-func workerRequestJSON(host string, wg *sync.WaitGroup, inCh <-chan model.JSONMetrics, outCh chan<- error) {
+func workerRequestJSON(ctx context.Context, client pb.MetricsServiceClient, wg *sync.WaitGroup, inCh <-chan model.JSONMetrics, outCh chan<- error) {
 	defer wg.Done()
 	for tModel := range inCh {
-		err := retrySendRequestJSON(host, tModel)
+		err := retrySendRequestJSON(ctx, client, tModel)
 		outCh <- err
 	}
 }
 
-func sendMetrics(wg *sync.WaitGroup, pollInterval time.Duration, host string) {
+func sendMetrics(ctx context.Context, wg *sync.WaitGroup, pollInterval time.Duration, client pb.MetricsServiceClient) {
 	for {
 		wg.Add(1)
 		time.Sleep(pollInterval * time.Second)
@@ -138,7 +148,7 @@ func sendMetrics(wg *sync.WaitGroup, pollInterval time.Duration, host string) {
 		go func() {
 			for i := 0; i < config.RateLimit; i++ {
 				tWG.Add(1)
-				go workerRequestJSON(host, tWG, inputCh, outputCh)
+				go workerRequestJSON(ctx, client, tWG, inputCh, outputCh)
 			}
 			tWG.Wait()
 			close(outputCh)
@@ -179,6 +189,19 @@ func importPublicKey() *rsa.PublicKey {
 	return nil
 }
 
+func identifyIP() (net.IP, error) {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return nil, fmt.Errorf("failed to identify IP addresses: %w", err)
+	}
+	for _, addr := range addrs {
+		if ipNet, ok := addr.(*net.IPNet); ok && !ipNet.IP.IsLoopback() && ipNet.IP.To4() != nil {
+			return ipNet.IP.To4(), nil
+		}
+	}
+	return nil, errors.New("ip address is not found")
+}
+
 func encrypt(msg []byte) []byte {
 	if config.CryptoKeyAgent != "" {
 		publicKey := importPublicKey()
@@ -191,38 +214,52 @@ func encrypt(msg []byte) []byte {
 	return msg
 }
 
-func sendRequestJSON(host string, tJSON model.JSONMetrics) error {
-	url := "http://" + host + "/update/"
-	tModel, _ := json.Marshal(tJSON)
-	client := &http.Client{}
-	tModel = encrypt(tModel)
-	r, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(helpers.Compress(tModel)))
-	r.Header.Add("Content-Encoding", "gzip")
-	r.Header.Add("Content-Type", "application/json")
-	sendHashKey(r, tModel)
+func getFloat64OrNull(t *float64) float64 {
+	if t != nil {
+		return *t
+	}
+	return 0
+}
 
-	body, err := client.Do(r)
+func getInt64OrNull(t *int64) int64 {
+	if t != nil {
+		return *t
+	}
+	return 0
+}
+
+func sendRequestJSON(ctx context.Context, client pb.MetricsServiceClient, tJSON model.JSONMetrics) error {
+	req := pb.UpdateMetricsRequest{
+		Id:    tJSON.ID,
+		Delta: getInt64OrNull(tJSON.Delta),
+		Value: getFloat64OrNull(tJSON.Value),
+		Type:  tJSON.MType,
+	}
+	var md metadata.MD
+
+	ip, err := identifyIP()
 	if err != nil {
 		log.Error(err.Error())
-		return err
 	} else {
-		errClose := body.Body.Close()
-		if errClose != nil {
-			log.Error(errClose.Error())
-			return errClose
-		}
+		md = metadata.New(map[string]string{"x-real-ip": ip.To4().String()})
+		ctx = metadata.NewOutgoingContext(ctx, md)
+	}
+	_, err = client.UpdateMetrics(ctx, &req, grpc.Header(&md))
+	if err != nil {
+		return err
 	}
 	return err
 }
 
-func retrySendRequestJSON(host string, tJSON model.JSONMetrics) error {
-	err := sendRequestJSON(host, tJSON)
+func retrySendRequestJSON(ctx context.Context, client pb.MetricsServiceClient, tJSON model.JSONMetrics) error {
+	err := sendRequestJSON(ctx, client, tJSON)
 	if err != nil {
+		log.Error(err.Error())
 		for i := 1; i <= 5; i = i + 2 {
 			timer := time.NewTimer(time.Duration(i) * time.Second)
 			t := <-timer.C
 			log.Info(t.Local())
-			err = sendRequestJSON(host, tJSON)
+			err = sendRequestJSON(ctx, client, tJSON)
 			if err == nil {
 				break
 			}
