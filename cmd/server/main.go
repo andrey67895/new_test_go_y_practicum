@@ -16,6 +16,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/andrey67895/new_test_go_y_practicum/internal/config"
+	"github.com/andrey67895/new_test_go_y_practicum/internal/interceptors"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/logger"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/model"
 	"github.com/andrey67895/new_test_go_y_practicum/internal/service"
@@ -39,7 +40,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	s := grpc.NewServer()
+	s := grpc.NewServer(grpc.UnaryInterceptor(interceptors.RealIpInterceptor))
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	defer stop()
 	var wg sync.WaitGroup

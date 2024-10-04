@@ -65,7 +65,7 @@ func main() {
 
 	config.InitAgentConfig()
 	go updateMetrics(time.Duration(config.PollIntervalAgent))
-	go sendMetrics(&wg, time.Duration(config.ReportIntervalAgent), client, ctx)
+	go sendMetrics(ctx, &wg, time.Duration(config.ReportIntervalAgent), client)
 	server := http.Server{}
 	go func() {
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
@@ -107,15 +107,15 @@ func updateMetrics(pollInterval time.Duration) {
 	}
 }
 
-func workerRequestJSON(client pb.MetricsServiceClient, wg *sync.WaitGroup, inCh <-chan model.JSONMetrics, outCh chan<- error, ctx context.Context) {
+func workerRequestJSON(ctx context.Context, client pb.MetricsServiceClient, wg *sync.WaitGroup, inCh <-chan model.JSONMetrics, outCh chan<- error) {
 	defer wg.Done()
 	for tModel := range inCh {
-		err := retrySendRequestJSON(client, tModel, ctx)
+		err := retrySendRequestJSON(ctx, client, tModel)
 		outCh <- err
 	}
 }
 
-func sendMetrics(wg *sync.WaitGroup, pollInterval time.Duration, client pb.MetricsServiceClient, ctx context.Context) {
+func sendMetrics(ctx context.Context, wg *sync.WaitGroup, pollInterval time.Duration, client pb.MetricsServiceClient) {
 	for {
 		wg.Add(1)
 		time.Sleep(pollInterval * time.Second)
@@ -148,7 +148,7 @@ func sendMetrics(wg *sync.WaitGroup, pollInterval time.Duration, client pb.Metri
 		go func() {
 			for i := 0; i < config.RateLimit; i++ {
 				tWG.Add(1)
-				go workerRequestJSON(client, tWG, inputCh, outputCh, ctx)
+				go workerRequestJSON(ctx, client, tWG, inputCh, outputCh)
 			}
 			tWG.Wait()
 			close(outputCh)
@@ -228,7 +228,7 @@ func getInt64OrNull(t *int64) int64 {
 	return 0
 }
 
-func sendRequestJSON(client pb.MetricsServiceClient, tJSON model.JSONMetrics, ctx context.Context) error {
+func sendRequestJSON(ctx context.Context, client pb.MetricsServiceClient, tJSON model.JSONMetrics) error {
 	req := pb.UpdateMetricsRequest{
 		Id:    tJSON.ID,
 		Delta: getInt64OrNull(tJSON.Delta),
@@ -251,15 +251,15 @@ func sendRequestJSON(client pb.MetricsServiceClient, tJSON model.JSONMetrics, ct
 	return err
 }
 
-func retrySendRequestJSON(client pb.MetricsServiceClient, tJSON model.JSONMetrics, ctx context.Context) error {
-	err := sendRequestJSON(client, tJSON, ctx)
+func retrySendRequestJSON(ctx context.Context, client pb.MetricsServiceClient, tJSON model.JSONMetrics) error {
+	err := sendRequestJSON(ctx, client, tJSON)
 	if err != nil {
 		log.Error(err.Error())
 		for i := 1; i <= 5; i = i + 2 {
 			timer := time.NewTimer(time.Duration(i) * time.Second)
 			t := <-timer.C
 			log.Info(t.Local())
-			err = sendRequestJSON(client, tJSON, ctx)
+			err = sendRequestJSON(ctx, client, tJSON)
 			if err == nil {
 				break
 			}
