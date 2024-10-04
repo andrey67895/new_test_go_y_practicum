@@ -40,7 +40,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	s := grpc.NewServer(grpc.UnaryInterceptor(interceptors.RealIpInterceptor))
+	s := grpc.NewServer(grpc.UnaryInterceptor(interceptors.RealIPInterceptor))
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	defer stop()
 	var wg sync.WaitGroup

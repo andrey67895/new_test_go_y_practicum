@@ -16,7 +16,7 @@ import (
 
 var log = logger.Log()
 
-func RealIpInterceptor(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+func RealIPInterceptor(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 
 	if err := checkIP(ctx); err != nil {
 		return nil, err
